@@ -1,0 +1,50 @@
+{
+    "name": "zenigata/http",
+    "type": "library",
+    "license": "MIT",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "Ilario Promutico"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Zenigata\\Http\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Zenigata\\Http\\Test\\": "tests/"
+        }
+    },
+    "require": {
+        "laminas/laminas-httphandlerrunner": "^2.12",
+        "middlewares/payload": "^3.1",
+        "middlewares/utils": "^4.0",
+        "nikic/fast-route": "^1.3",
+        "nyholm/psr7-server": "^1.1",
+        "php": "^8.2 || ^8.3 || ^8.4",
+        "psr/http-factory": "^1.1",
+        "psr/http-server-middleware": "^1.0",
+        "zenigata/helpers": "^0.1"
+    },
+    "require-dev": {
+        "mikey179/vfsstream": "^1.6",
+        "nyholm/psr7": "^1.8",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.5 || ^12.0",
+        "zenigata/testing": "^0.2"
+    },
+    "scripts": {
+        "stan": "vendor/bin/phpstan analyse src tests --memory-limit=512M",
+        "unit": "phpunit --configuration phpunit.xml --testdox",
+        "test": [
+            "@stan",
+            "@unit"
+        ]
+    },
+    "suggest": {
+        "nyholm/psr7": "Lightweight PSR-7 and PSR-17 implementations."
+    }
+}
