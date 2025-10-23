@@ -12,7 +12,7 @@ use Middlewares\Utils\HttpErrorException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Zenigata\Helpers\ReflectionHelper;
+use Zenigata\Utility\Helper\ReflectionHelper;
 use Zenigata\Http\Handler\HandlerResolver;
 use Zenigata\Http\Handler\HandlerResolverInterface;
 use Zenigata\Http\Middleware\Dispatcher as MiddlewareDispatcher;
@@ -60,7 +60,7 @@ class Router implements RouterInterface
      * @param RouteInterface[]|GroupInterface[]|string[] $routes        Initial routes (optional).
      * @param ContainerInterface|null                    $container     Optional PSR-11 container for resolving services.
      * @param HandlerResolverInterface|null              $resolver      PSR-15 handler resolver.
-     * @param string                                     $attributeName Request attribute name for {@see RouteMetadata}.
+     * @param string                                     $attributeName Request attribute name for {@see RouteMatch}.
      * @param bool                                       $enableCache   Enable FastRoute caching.
      * @param string|null                                $cacheFile     FastRoute cache file path.
      */
@@ -76,8 +76,8 @@ class Router implements RouterInterface
     /**
      * {@inheritDoc}
      * 
-     * Delegates to the matched route's handler and middleware stack,
-     * or throws an appropriate {@see HttpErrorException} if no route matches.
+     * Delegates processing to the matched route's handler
+     * and its middleware stack.
      * 
      * @throws HttpErrorException If the request cannot be matched to a route.
      */
@@ -86,14 +86,14 @@ class Router implements RouterInterface
         $method = $request->getMethod();
         $path   = $request->getUri()->getPath();
 
-        $result = $this->matchRoute($method, $path);
+        $result = $this->router()->dispatch($method, $path);
 
         $status = $result[0];
         $data   = $result[1] ?? [];
         $params = $result[2] ?? [];
 
         $route = match ($status) {
-            self::FOUND       => $this->createMetadata($method, $path, $data['handler'], $data['middleware'], $params),
+            self::FOUND       => $this->createMatch($method, $path, $data['handler'], $data['middleware'], $params),
             self::NOT_FOUND   => throw HttpErrorException::create(404),
             self::NOT_ALLOWED => throw HttpErrorException::create(405, ['Allowed methods: ' => $data]),
             default           => throw new HttpErrorException('Unexpected routing error.', 500)
@@ -139,14 +139,12 @@ class Router implements RouterInterface
     }
 
     /**
-     * Matches an HTTP method and path against the registered routes.
-     *
-     * Lazily builds the underlying FastRoute dispatcher using {@see cachedDispatcher},
+     * Lazily builds and returns a FastRoute dispatcher using {@see cachedDispatcher},
      * which compiles all routes into an optimized routing table.
      */
-    private function matchRoute(string $method, string $path): array
+    private function router(): RouteDispatcher
     {
-        $this->router ??= cachedDispatcher(
+        return $this->router ??= cachedDispatcher(
             fn(RouteCollector $collector) => array_map(
                 fn(RouteInterface $route) => $collector->addRoute(
                     $route->getMethod(),
@@ -163,8 +161,6 @@ class Router implements RouterInterface
                 'cacheDisabled' => !$this->enableCache,
             ]
         );
-
-        return $this->router->dispatch($method, $path);
     }
 
     /**
@@ -231,29 +227,30 @@ class Router implements RouterInterface
      * Creates route metadata with resolved handler
      * and attached middleware and paramaters.
      */
-    private function createMetadata(
+    private function createMatch(
         string $method,
         string $path,
         mixed $handler,
-        array $middleware,
-        array $params
-    ): RouteMetadata
+        array $middleware = [],
+        array $parameters = [],
+    ): RouteMatch
     {
-        $this->resolver ??= new HandlerResolver($this->container);
+        $this->resolver ??= new HandlerResolver(container: $this->container);
 
-        return new RouteMetadata(
+        return new RouteMatch(
             method:     $method,
             path:       $path,
-            handler:    $this->resolver->resolve($handler),
+            handler:    $this->resolver->resolve($handler, $parameters),
             middleware: $middleware,
-            parameters: $params
+            parameters: $parameters
         ); 
     }
 
     /**
-     * // TODO scrivere breve description, max due righe
+     * Attaches the matched route and its parameters as request attributes,
+     * making them available to subsequent middleware and handlers.
      */
-    private function enrichRequest(ServerRequestInterface $request, RouteMetadata $route): ServerRequestInterface
+    private function enrichRequest(ServerRequestInterface $request, RouteMatch $route): ServerRequestInterface
     {
         $request = $request->withAttribute($this->attributeName, $route);
 

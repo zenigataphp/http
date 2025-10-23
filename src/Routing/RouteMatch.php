@@ -8,12 +8,12 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * Holds metadata about a resolved route.
+ * Holds metadata about a route match.
  */
-final class RouteMetadata
+final class RouteMatch
 {
     /**
-     * Creates a new route metadata instance.
+     * Creates a new route match instance.
      *
      * @param string                         $method     HTTP method (e.g., "GET", "POST")
      * @param string                         $path       The route path pattern (e.g., /posts/{slug}).
