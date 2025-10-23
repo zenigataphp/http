@@ -6,8 +6,7 @@ namespace Zenigata\Http\Test;
 
 use Throwable;
 use Psr\Http\Message\ServerRequestInterface;
-use Zenigata\Http\Initializer;
-use Zenigata\Testing\Http\FakeHttpFactory;
+use Zenigata\Http\Bootstrap\Initializer;
 
 /**
  * Test-specific implementation of {@see Initializer}.
@@ -41,16 +40,7 @@ final class TestableInitializer extends Initializer
         private ?Throwable $exception  = null,
         bool $debug                    = false,
     ) {
-        $httpFactory = new FakeHttpFactory();
-
-        parent::__construct(
-            serverRequestFactory: $httpFactory,
-            streamFactory:        $httpFactory,
-            uploadedFileFactory:  $httpFactory,
-            uriFactory:           $httpFactory,
-            responseFactory:      $httpFactory,
-            debug:                $debug
-        );
+        parent::__construct(debug: $debug);
     }
 
     /**

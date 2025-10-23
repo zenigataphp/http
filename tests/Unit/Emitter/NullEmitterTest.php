@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Zenigata\Http\Test\Unit\Emitter;
 
 use Laminas\HttpHandlerRunner\Emitter\EmitterInterface;
+use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Zenigata\Http\Emitter\NullEmitter;
-use Zenigata\Testing\Http\FakeResponse;
 
 /**
  * Unit test for {@see NullEmitter}.
@@ -37,7 +37,7 @@ final class NullEmitterTest extends TestCase
     {
         $emitter = new NullEmitter(emit: true);
 
-        $emitted = $emitter->emit(new FakeResponse());
+        $emitted = $emitter->emit(new Response());
 
         $this->assertTrue($emitted);
         $this->assertTrue($emitter->isInvoked());
@@ -47,7 +47,7 @@ final class NullEmitterTest extends TestCase
     {
         $emitter = new NullEmitter(emit: false);
 
-        $emitted = $emitter->emit(new FakeResponse());
+        $emitted = $emitter->emit(new Response());
 
         $this->assertFalse($emitted);
         $this->assertTrue($emitter->isInvoked());

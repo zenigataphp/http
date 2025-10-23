@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test\Unit\Handler;
 
+use Nyholm\Psr7\Response;
+use Nyholm\Psr7\ServerRequest;
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
 use Zenigata\Http\Handler\HandlerResolver;
-use Zenigata\Testing\Http\FakeRequestHandler;
-use Zenigata\Testing\Http\FakeResponse;
-use Zenigata\Testing\Http\FakeServerRequest;
-use Zenigata\Testing\Infrastructure\FakeContainer;
+use Zenigata\Utility\Psr\FakeContainer;
+use Zenigata\Utility\Psr\FakeRequestHandler;
 
 /**
  * Unit test for {@see HandlerResolver}.
@@ -33,8 +33,8 @@ final class HandlerResolverTest extends TestCase
     {
         $resolver = new HandlerResolver();
 
-        $resolved = $resolver->resolve(fn($request) => new FakeResponse(204));
-        $response = $resolved->handle(new FakeServerRequest());
+        $resolved = $resolver->resolve(fn() => new Response(204));
+        $response = $resolved->handle(new ServerRequest('GET', '/'));
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(204, $response->getStatusCode());
@@ -43,13 +43,13 @@ final class HandlerResolverTest extends TestCase
     public function testResolveFromContainer(): void
     {
         $container = new FakeContainer([
-            'handler' => new FakeRequestHandler(new FakeResponse(204)),
+            'handler' => new FakeRequestHandler(new Response(204)),
         ]);
 
         $resolver = new HandlerResolver(container: $container);
 
         $resolved = $resolver->resolve('handler', []);
-        $response = $resolved->handle(new FakeServerRequest());
+        $response = $resolved->handle(new ServerRequest('GET', '/'));
 
         $this->assertSame(204, $response->getStatusCode());
     }
@@ -58,9 +58,9 @@ final class HandlerResolverTest extends TestCase
     {
         $container = new FakeContainer([
             'controller' => new class {
-                public function index($request): FakeResponse
+                public function index($request)
                 {
-                    return new FakeResponse(204);
+                    return new Response(204);
                 }
             }
         ]);
@@ -68,7 +68,7 @@ final class HandlerResolverTest extends TestCase
         $resolver = new HandlerResolver(container: $container);
 
         $resolved = $resolver->resolve(['controller', 'index'], []);
-        $response = $resolved->handle(new FakeServerRequest());
+        $response = $resolved->handle(new ServerRequest('GET', '/'));
 
         $this->assertSame(204, $response->getStatusCode());
     }

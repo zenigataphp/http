@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test\Unit\Routing;
 
+use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Zenigata\Http\Routing\Route;
-use Zenigata\Testing\Http\FakeRequestHandler;
+use Zenigata\Utility\Psr\FakeRequestHandler;
 
 /**
  * Unit test for {@see Route}.
@@ -100,7 +101,7 @@ final class RouteTest extends TestCase
 
     public function testRouteAcceptsRequestHandlerInstance(): void
     {
-        $handler = new FakeRequestHandler();
+        $handler = new FakeRequestHandler(new Response());
         $route = Route::get('/foo', $handler);
 
         $this->assertSame($handler, $route->getHandler());

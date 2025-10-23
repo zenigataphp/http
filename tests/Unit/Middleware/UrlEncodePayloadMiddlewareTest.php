@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test\Unit\Middleware;
 
+use Nyholm\Psr7\Response;
+use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zenigata\Http\Middleware\UrlEncodePayloadMiddleware;
-use Zenigata\Testing\Http\FakeRequestHandler;
-use Zenigata\Testing\Http\FakeServerRequest;
-use Zenigata\Testing\Http\FakeStream;
 
 /**
  * Unit test for {@see UrlEncodePayloadMiddleware}.
@@ -29,52 +29,71 @@ use Zenigata\Testing\Http\FakeStream;
 #[CoversClass(UrlEncodePayloadMiddleware::class)]
 final class UrlEncodePayloadMiddlewareTest extends TestCase
 {
+    private RequestHandlerInterface $handler;
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function setUp(): void
+    {
+        $this->handler = new class implements RequestHandlerInterface {
+            public ?ServerRequestInterface $capturedRequest = null;
+
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+
+                return new Response();
+            }
+        };
+    }
+
     public function testParsesValidUrlEncodedBody(): void
     {
         $middleware = new UrlEncodePayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/x-www-form-urlencoded'],
-            body:    new FakeStream('foo=bar&baz=1')
+            body:    'foo=bar&baz=1'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertSame(['foo' => 'bar', 'baz' => '1'], $handler->capturedRequest->getParsedBody());
+        $this->assertSame(['foo' => 'bar', 'baz' => '1'], $this->handler->capturedRequest->getParsedBody());
     }
 
     public function testSkipsUnsupportedContentType(): void
     {
         $middleware = new UrlEncodePayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/json'],
-            body:    new FakeStream('foo=bar')
+            body:    'foo=bar'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertNull($handler->capturedRequest->getParsedBody());
+        $this->assertNull($this->handler->capturedRequest->getParsedBody());
     }
 
     public function testHandlesMalformedBodyGracefully(): void
     {
         $middleware = new UrlEncodePayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/x-www-form-urlencoded'],
-            body:    new FakeStream('foo%invalid=bar')
+            body:    'foo%invalid=bar'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $parsed = $handler->capturedRequest->getParsedBody();
+        $parsed = $this->handler->capturedRequest->getParsedBody();
         $this->assertIsArray($parsed);
         $this->assertArrayHasKey('foo%invalid', $parsed);
     }
@@ -83,98 +102,93 @@ final class UrlEncodePayloadMiddlewareTest extends TestCase
     {
         $middleware = new UrlEncodePayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/x-www-form-urlencoded'],
-            body:    new FakeStream()
+            body:    ''
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertSame([], $handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertSame([], $parsed);
     }
 
     public function testHonorsConfiguredMethods(): void
     {
         $middleware = new UrlEncodePayloadMiddleware(methods: ['PUT']);
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/x-www-form-urlencoded'],
-            body:    new FakeStream('foo=bar')
+            body:    'foo=bar'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertNull($handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertNull($parsed);
     }
 
     public function testHonorsConfiguredContentType(): void
     {
         $middleware = new UrlEncodePayloadMiddleware(contentType: ['application/custom-urlencoded']);
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/custom-urlencoded'],
-            body:    new FakeStream('foo=bar')
+            body:    'foo=bar'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertSame(['foo' => 'bar'], $handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertSame(['foo' => 'bar'], $parsed);
     }
 
     public function testOverrideEnabled(): void
     {
         $middleware = new UrlEncodePayloadMiddleware(override: true);
 
-        $request = new FakeServerRequest(
-            method:     'POST',
-            headers:    ['Content-Type' => 'application/x-www-form-urlencoded'],
-            body:       new FakeStream('foo=bar'),
-            parsedBody: ['old' => 'value']
+        $request = new ServerRequest(
+            method:  'POST',
+            uri:     '/',
+            headers: ['Content-Type' => 'application/x-www-form-urlencoded'],
+            body:    'foo=bar'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $request = $request->withParsedBody(['original' => 'value']);
 
-        $this->assertSame(['foo' => 'bar'], $handler->capturedRequest->getParsedBody());
+        $middleware->process($request, $this->handler);
+
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertSame(['foo' => 'bar'], $parsed);
     }
 
     public function testOverrideDisabled(): void
     {
         $middleware = new UrlEncodePayloadMiddleware(override: false);
 
-        $request = new FakeServerRequest(
-            method:     'POST',
-            headers:    ['Content-Type' => 'application/x-www-form-urlencoded'],
-            body:       new FakeStream('foo=bar'),
-            parsedBody: ['old' => 'value']
+        $request = new ServerRequest(
+            method:  'POST',
+            uri:     '/',
+            headers: ['Content-Type' => 'application/x-www-form-urlencoded'],
+            body:    'foo=bar'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $request = $request->withParsedBody(['original' => 'value']);
 
-        $this->assertSame(['old' => 'value'], $handler->capturedRequest->getParsedBody());
-    }
+        $middleware->process($request, $this->handler);
 
-    /**
-     * Creates a controllable request handler that captures the incoming request.
-     *
-     * @return RequestHandlerInterface A testable request handler instance.
-     */
-    private function createRequestHandler(): RequestHandlerInterface
-    {
-        return new class extends FakeRequestHandler {
-            public ?ServerRequestInterface $capturedRequest = null;
+        $parsed = $this->handler->capturedRequest->getParsedBody();
 
-            protected function onHandle(ServerRequestInterface $request): void
-            {
-                $this->capturedRequest = $request;
-            }
-        };
+        $this->assertSame(['original' => 'value'], $parsed);
     }
 }

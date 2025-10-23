@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test\Unit\Middleware;
 
+use Nyholm\Psr7\Response;
+use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Psr\Http\Message\ResponseInterface;
 use Zenigata\Http\Middleware\Dispatcher;
-use Zenigata\Http\Test\LoggableMiddleware;
-use Zenigata\Http\Test\LoggableRequestHandler;
-use Zenigata\Testing\Http\FakeServerRequest;
-use Zenigata\Testing\Infrastructure\FakeContainer;
+use Zenigata\Utility\Psr\FakeContainer;
+use Zenigata\Utility\Psr\FakeMiddleware;
+use Zenigata\Utility\Psr\FakeRequestHandler;
+
+use function array_shift;
 
 /**
  * Unit test for {@see Dispatcher}.
@@ -24,41 +28,63 @@ use Zenigata\Testing\Infrastructure\FakeContainer;
 #[CoversClass(Dispatcher::class)]
 final class DispatcherTest extends TestCase
 {
+    private ResponseInterface $response;
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function setUp(): void
+    {
+        $this->response = new Response();
+    }
+
     public function testExecutionOrder(): void
     {
-        $calls = [];
+        $stack = [];
+        $names = ['middleware1', 'middleware2', 'handler'];
+
+        $callback = function () use (&$stack, &$names) {
+            $name = array_shift($names);
+            $stack[] = $name;
+        };
 
         $dispatcher = new Dispatcher(
             middleware: [
-                new LoggableMiddleware($calls, 'middleware1'), 
-                new LoggableMiddleware($calls, 'middleware2'),
+                new FakeMiddleware(callable: $callback), 
+                new FakeMiddleware(callable: $callback),
             ], 
-            handler: new LoggableRequestHandler($calls, 'handler')
+            handler: new FakeRequestHandler($this->response, $callback)
         );
 
-        $dispatcher->handle(new FakeServerRequest());
+        $dispatcher->handle(new ServerRequest('GET', '/'));
 
-        $this->assertSame(['middleware1', 'middleware2', 'handler'], $calls);
+        $this->assertSame(['middleware1', 'middleware2', 'handler'], $stack);
     }
 
     public function testResolveFromContainer(): void
     {
-        $calls = [];
+        $stack = [];
+        $names = ['containerMiddleware', 'handler'];
+
+        $callback = function () use (&$stack, &$names) {
+            $name = array_shift($names);
+            $stack[] = $name;
+        };
 
         $container = new FakeContainer([
-            'fake.middleware' => new LoggableMiddleware($calls, 'containerMiddleware')
+            'fake.middleware' => new FakeMiddleware(callable: $callback)
         ]);
 
         $dispatcher = new Dispatcher(
             middleware: [
                 'fake.middleware'
             ], 
-            handler:   new LoggableRequestHandler($calls, 'handler'),
+            handler:   new FakeRequestHandler($this->response, $callback),
             container: $container
         );
 
-        $dispatcher->handle(new FakeServerRequest());
+        $dispatcher->handle(new ServerRequest('GET', '/'));
 
-        $this->assertSame(['containerMiddleware', 'handler'], $calls);
+        $this->assertSame(['containerMiddleware', 'handler'], $stack);
     }
 }

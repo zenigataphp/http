@@ -6,14 +6,14 @@ namespace Zenigata\Http\Test\Unit\Middleware;
 
 use SimpleXMLElement;
 use Middlewares\Utils\HttpErrorException;
+use Nyholm\Psr7\Response;
+use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zenigata\Http\Middleware\XmlPayloadMiddleware;
-use Zenigata\Testing\Http\FakeRequestHandler;
-use Zenigata\Testing\Http\FakeServerRequest;
-use Zenigata\Testing\Http\FakeStream;
 
 /**
  * Unit test for {@see XmlPayloadMiddleware}.
@@ -31,20 +31,39 @@ use Zenigata\Testing\Http\FakeStream;
 #[CoversClass(XmlPayloadMiddleware::class)]
 final class XmlPayloadMiddlewareTest extends TestCase
 {
+    private RequestHandlerInterface $handler;
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function setUp(): void
+    {
+        $this->handler = new class implements RequestHandlerInterface {
+            public ?ServerRequestInterface $capturedRequest = null;
+
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+
+                return new Response();
+            }
+        };
+    }
+
     public function testParsesValidXmlBody(): void
     {
         $middleware = new XmlPayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/xml'],
-            body:    new FakeStream('<root><foo>bar</foo></root>')
+            body:    '<root><foo>bar</foo></root>'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $parsed = $handler->capturedRequest->getParsedBody();
+        $parsed = $this->handler->capturedRequest->getParsedBody();
 
         $this->assertInstanceOf(\SimpleXMLElement::class, $parsed);
         $this->assertSame('bar', (string) $parsed->foo);
@@ -54,16 +73,18 @@ final class XmlPayloadMiddlewareTest extends TestCase
     {
         $middleware = new XmlPayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'text/plain'],
-            body:    new FakeStream('<foo>bar</foo>')
+            body:    '<foo>bar</foo>'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertNull($handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertNull($parsed);
     }
 
     public function testThrowsOnInvalidXml(): void
@@ -73,63 +94,67 @@ final class XmlPayloadMiddlewareTest extends TestCase
 
         $middleware = new XmlPayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/xml'],
-            body:    new FakeStream('<foo><bar></foo>')
+            body:    '<foo><bar></foo>'
         );
 
-        $handler = $this->createRequestHandler();
 
-        @$middleware->process($request, $handler); // TODO capire se migliorare o eliminare il test case
+        @$middleware->process($request, $this->handler); // TODO can we make better than this?
     }
 
     public function testParsesEmptyBodyAsNull(): void
     {
         $middleware = new XmlPayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/xml'],
-            body:    new FakeStream()
+            body:    ''
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertNull($handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertNull($parsed);
     }
 
     public function testHonorsConfiguredMethods(): void
     {
         $middleware = new XmlPayloadMiddleware(methods: ['PUT']);
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/xml'],
-            body:    new FakeStream('<root><foo>bar</foo></root>')
+            body:    '<root><foo>bar</foo></root>'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertNull($handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertNull($parsed);
     }
 
     public function testHonorsConfiguredContentType(): void
     {
         $middleware = new XmlPayloadMiddleware(contentType: ['application/custom+xml']);
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/custom+xml'],
-            body:    new FakeStream('<root><foo>bar</foo></root>')
+            body:    '<root><foo>bar</foo></root>'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $parsed = $handler->capturedRequest->getParsedBody();
+        $parsed = $this->handler->capturedRequest->getParsedBody();
 
         $this->assertInstanceOf(SimpleXMLElement::class, $parsed);
         $this->assertSame('bar', (string) $parsed->foo);
@@ -139,17 +164,18 @@ final class XmlPayloadMiddlewareTest extends TestCase
     {
         $middleware = new XmlPayloadMiddleware(override: true);
 
-        $request = new FakeServerRequest(
-            method:     'POST',
-            headers:    ['Content-Type' => 'application/xml'],
-            body:       new FakeStream('<root><foo>bar</foo></root>'),
-            parsedBody: ['old' => 'value']
+        $request = new ServerRequest(
+            method:  'POST',
+            uri:     '/',
+            headers: ['Content-Type' => 'application/xml'],
+            body:    '<root><foo>bar</foo></root>'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $request = $request->withParsedBody(['original' => 'value']);
 
-        $parsed = $handler->capturedRequest->getParsedBody();
+        $middleware->process($request, $this->handler);
+
+        $parsed = $this->handler->capturedRequest->getParsedBody();
 
         $this->assertInstanceOf(SimpleXMLElement::class, $parsed);
         $this->assertSame('bar', (string) $parsed->foo);
@@ -159,33 +185,19 @@ final class XmlPayloadMiddlewareTest extends TestCase
     {
         $middleware = new XmlPayloadMiddleware(override: false);
 
-        $request = new FakeServerRequest(
-            method:     'POST',
-            headers:    ['Content-Type' => 'application/xml'],
-            body:       new FakeStream('<root><foo>bar</foo></root>'),
-            parsedBody: ['old' => 'value']
+        $request = new ServerRequest(
+            method:  'POST',
+            uri:     '/',
+            headers: ['Content-Type' => 'application/xml'],
+            body:    '<root><foo>bar</foo></root>'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $request = $request->withParsedBody(['original' => 'value']);
 
-        $this->assertSame(['old' => 'value'], $handler->capturedRequest->getParsedBody());
-    }
+        $middleware->process($request, $this->handler);
 
-    /**
-     * Creates a controllable request handler that captures the incoming request.
-     *
-     * @return RequestHandlerInterface A testable request handler instance.
-     */
-    private function createRequestHandler(): RequestHandlerInterface
-    {
-        return new class extends FakeRequestHandler {
-            public ?ServerRequestInterface $capturedRequest = null;
+        $parsed = $this->handler->capturedRequest->getParsedBody();
 
-            protected function onHandle(ServerRequestInterface $request): void
-            {
-                $this->capturedRequest = $request;
-            }
-        };
+        $this->assertSame(['original' => 'value'], $parsed);
     }
 }

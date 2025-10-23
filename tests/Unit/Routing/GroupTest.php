@@ -9,7 +9,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Server\MiddlewareInterface;
 use Zenigata\Http\Routing\Route;
 use Zenigata\Http\Routing\Group;
-use Zenigata\Testing\Http\FakeMiddleware;
+use Zenigata\Utility\Psr\FakeMiddleware;
 
 /**
  * Unit test for {@see Group}.

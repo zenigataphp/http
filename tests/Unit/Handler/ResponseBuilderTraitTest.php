@@ -14,7 +14,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zenigata\Http\Handler\ResponseBuilderTrait;
-use Zenigata\Testing\Http\FakeStream;
 
 use function fopen;
 use function tmpfile;
@@ -33,8 +32,7 @@ use function tmpfile;
  * - File responses set `Content-Disposition`, `Content-Length`, and preserve filenames (RFC 5987).
  * - Inline file responses set correct `Content-Disposition: inline` and preserve filename and size.  
  * - Redirects set `Location` header and only allow valid redirect codes.  
- * - Streams from strings/resources yield {@see StreamInterface}.  
- * - Invalid stream inputs throw {@see InvalidArgumentException}.  
+ * - Streams from strings/resources yield {@see StreamInterface}.
  * - JSON encoding errors throw {@see RuntimeException}.  
  */
 #[CoversTrait(ResponseBuilderTrait::class)]
@@ -64,10 +62,9 @@ final class ResponseBuilderTraitTest extends TestCase
 
     public function testCreateResponse(): void
     {
-        $body = new FakeStream('hello');
-        $response = $this->instance->createResponse(200, $body);
+        $response = $this->instance->createResponse(200, 'hello');
 
-        $this->assertSame($body, $response->getBody());
+        $this->assertSame('hello', (string) $response->getBody());
         $this->assertSame(200, $response->getStatusCode());
     }
 

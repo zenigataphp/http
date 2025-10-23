@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test\Unit\Emitter;
 
+use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Zenigata\Http\Emitter\CombinedEmitter;
 use Zenigata\Http\Emitter\NullEmitter;
-use Zenigata\Testing\Http\FakeResponse;
-use Zenigata\Testing\Http\FakeStream;
 
 /**
  * Unit test for {@see CombinedEmitter}.
@@ -26,9 +25,9 @@ final class CombinedEmitterTest extends TestCase
 {
     public function testUsesStreamEmitterWhenStreamingPossible(): void
     {
-        $response = new FakeResponse(
+        $response = new Response(
             headers: ['Content-Disposition' => 'attachment; filename="x.txt"'],
-            body:    new FakeStream('abc')
+            body:    'abc'
         );
 
         $defaultEmitter = new NullEmitter(emit: true);
@@ -43,9 +42,9 @@ final class CombinedEmitterTest extends TestCase
 
     public function testFallsBackToDefaultEmitterWhenStreamFails(): void
     {
-        $response = new FakeResponse(
+        $response = new Response(
             headers: ['Content-Type' => 'text/plain'],
-            body:    new FakeStream('body')
+            body:    'body'
         );
 
         $defaultEmitter = new NullEmitter(emit: true);

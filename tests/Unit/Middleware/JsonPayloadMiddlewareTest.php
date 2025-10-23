@@ -7,14 +7,14 @@ namespace Zenigata\Http\Test\Unit\Middleware;
 use const JSON_INVALID_UTF8_SUBSTITUTE;
 
 use Middlewares\Utils\HttpErrorException;
+use Nyholm\Psr7\Response;
+use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zenigata\Http\Middleware\JsonPayloadMiddleware;
-use Zenigata\Testing\Http\FakeRequestHandler;
-use Zenigata\Testing\Http\FakeServerRequest;
-use Zenigata\Testing\Http\FakeStream;
 
 /**
  * Unit test for {@see JsonPayloadMiddleware}.
@@ -35,20 +35,39 @@ use Zenigata\Testing\Http\FakeStream;
 #[CoversClass(JsonPayloadMiddleware::class)]
 final class JsonPayloadMiddlewareTest extends TestCase
 {
+    private RequestHandlerInterface $handler;
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function setUp(): void
+    {
+        $this->handler = new class implements RequestHandlerInterface {
+            public ?ServerRequestInterface $capturedRequest = null;
+
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+
+                return new Response();
+            }
+        };
+    }
+
     public function testParsesValidJsonBody(): void
     {
         $middleware = new JsonPayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/json'],
-            body:    new FakeStream('{"foo":"bar"}')
+            body:    '{"foo":"bar"}'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $parsed = $handler->capturedRequest->getParsedBody();
+        $parsed = $this->handler->capturedRequest->getParsedBody();
 
         $this->assertIsArray($parsed);
         $this->assertSame(['foo' => 'bar'], $parsed);
@@ -58,16 +77,18 @@ final class JsonPayloadMiddlewareTest extends TestCase
     {
         $middleware = new JsonPayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'text/plain'],
-            body:    new FakeStream('{"foo":"bar"}')
+            body:    '{"foo":"bar"}'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertNull($handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertNull($parsed);
     }
 
     public function testThrowsOnInvalidJson(): void
@@ -77,46 +98,48 @@ final class JsonPayloadMiddlewareTest extends TestCase
 
         $middleware = new JsonPayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/json'],
-            body:    new FakeStream('{invalid json}')
+            body:    '{invalid json}'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
     }
 
     public function testParsesEmptyBodyAsEmptyArray(): void
     {
         $middleware = new JsonPayloadMiddleware();
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/json'],
-            body:    new FakeStream()
+            body:    ''
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertSame([], $handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertSame([], $parsed);
     }
 
     public function testAssociativeOptionAffectsDecodedStructure(): void
     {
         $middleware = new JsonPayloadMiddleware(associative: false);
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/json'],
-            body:    new FakeStream('{"foo":"bar"}')
+            body:    '{"foo":"bar"}'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $parsed = $handler->capturedRequest->getParsedBody();
+        $parsed = $this->handler->capturedRequest->getParsedBody();
 
         $this->assertIsObject($parsed);
         $this->assertSame('bar', $parsed->foo);
@@ -129,14 +152,14 @@ final class JsonPayloadMiddlewareTest extends TestCase
 
         $middleware = new JsonPayloadMiddleware(depth: 2);
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/json'],
-            body:    new FakeStream('{"level1":{"level2":{"level3":"x"}}}')
+            body:    '{"level1":{"level2":{"level3":"x"}}}'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
     }
 
     public function testJsonDecodeOptionsAffectInvalidUtf8Handling(): void
@@ -147,16 +170,16 @@ final class JsonPayloadMiddlewareTest extends TestCase
         // Without JSON_INVALID_UTF8_SUBSTITUTE, decoding throws or returns null.
         $middleware = new JsonPayloadMiddleware(options: JSON_INVALID_UTF8_SUBSTITUTE);
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => ['application/json']],
-            body:    new FakeStream($invalidUtf8)
+            body:    $invalidUtf8
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $parsed = $handler->capturedRequest->getParsedBody();
+        $parsed = $this->handler->capturedRequest->getParsedBody();
 
         // The invalid byte should be replaced with the Unicode replacement char (�)
         $this->assertSame(['foo' => "bar�"], $parsed);
@@ -166,82 +189,75 @@ final class JsonPayloadMiddlewareTest extends TestCase
     {
         $middleware = new JsonPayloadMiddleware(methods: ['PUT']);
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/json'],
-            body:    new FakeStream('{"foo":"bar"}')
+            body:    '{"foo":"bar"}'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertNull($handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertNull($parsed);
     }
 
     public function testHonorsConfiguredContentType(): void
     {
         $middleware = new JsonPayloadMiddleware(contentType: ['application/custom+json']);
 
-        $request = new FakeServerRequest(
+        $request = new ServerRequest(
             method:  'POST',
+            uri:     '/',
             headers: ['Content-Type' => 'application/custom+json'],
-            body:    new FakeStream('{"foo":"bar"}')
+            body:    '{"foo":"bar"}'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $middleware->process($request, $this->handler);
 
-        $this->assertSame(['foo' => 'bar'], $handler->capturedRequest->getParsedBody());
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertSame(['foo' => 'bar'], $parsed);
     }
 
     public function testOverrideEnaled(): void
     {
         $middleware = new JsonPayloadMiddleware(override: true);
 
-        $request = new FakeServerRequest(
-            method:     'POST',
-            headers:    ['Content-Type' => 'application/json'],
-            body:       new FakeStream('{"foo":"bar"}'),
-            parsedBody: ['original' => 'value']
+        $request = new ServerRequest(
+            method:  'POST',
+            uri:     '/',
+            headers: ['Content-Type' => 'application/json'],
+            body:    '{"foo":"bar"}'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $request = $request->withParsedBody(['original' => 'value']);
 
-        $this->assertSame(['foo' => 'bar'], $handler->capturedRequest->getParsedBody());
+        $middleware->process($request, $this->handler);
+
+        $parsed = $this->handler->capturedRequest->getParsedBody();
+
+        $this->assertSame(['foo' => 'bar'], $parsed);
     }
 
     public function testOverrideDisabled(): void
     {
         $middleware = new JsonPayloadMiddleware(override: false);
 
-        $request = new FakeServerRequest(
-            method:     'POST',
-            headers:    ['Content-Type' => 'application/json'],
-            body:       new FakeStream('{"foo":"bar"}'),
-            parsedBody: ['old' => 'value']
+        $request = new ServerRequest(
+            method:  'POST',
+            uri:     '/',
+            headers: ['Content-Type' => 'application/json'],
+            body:    '{"foo":"bar"}'
         );
 
-        $handler = $this->createRequestHandler();
-        $middleware->process($request, $handler);
+        $request = $request->withParsedBody(['original' => 'value']);
 
-        $this->assertSame(['old' => 'value'], $handler->capturedRequest->getParsedBody());
-    }
+        $middleware->process($request, $this->handler);
 
-    /**
-     * Creates a controllable request handler that captures the incoming request.
-     *
-     * @return RequestHandlerInterface A testable request handler instance.
-     */
-    private function createRequestHandler(): RequestHandlerInterface
-    {
-        return new class extends FakeRequestHandler {
-            public ?ServerRequestInterface $capturedRequest = null;
+        $parsed = $this->handler->capturedRequest->getParsedBody();
 
-            protected function onHandle(ServerRequestInterface $request): void
-            {
-                $this->capturedRequest = $request;
-            }
-        };
+        $this->assertSame(['original' => 'value'], $parsed);
     }
 }

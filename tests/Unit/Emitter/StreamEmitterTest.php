@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test\Unit\Emitter;
 
+use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Zenigata\Http\Emitter\StreamEmitter;
-use Zenigata\Testing\Http\FakeResponse;
-use Zenigata\Testing\Http\FakeStream;
 
 /**
  * Unit test for {@see StreamEmitter}.
@@ -30,9 +29,9 @@ final class StreamEmitterTest extends TestCase
     {
         $emitter = new StreamEmitter(1024);
 
-        $response = new FakeResponse(
+        $response = new Response(
             headers: ['Content-Type' => 'text/plain'],
-            body:    new FakeStream('small body')
+            body:    'small body'
         );
 
         $this->assertFalse($emitter->shouldStream($response));
@@ -42,9 +41,9 @@ final class StreamEmitterTest extends TestCase
     {
         $emitter = new StreamEmitter(1024);
 
-        $response = new FakeResponse(
+        $response = new Response(
             headers: ['Content-Disposition' => 'attachment; filename="file.txt"'],
-            body:    new FakeStream('file content')
+            body:    'file content'
         );
 
         $this->assertTrue($emitter->shouldStream($response));
@@ -54,9 +53,9 @@ final class StreamEmitterTest extends TestCase
     {
         $emitter = new StreamEmitter(1024);
 
-        $response = new FakeResponse(
+        $response = new Response(
             headers: ['Content-Range' => 'bytes 0-99/100'],
-            body:    new FakeStream('partial content')
+            body:    'partial content'
         );
 
         $this->assertTrue($emitter->shouldStream($response));
@@ -66,9 +65,9 @@ final class StreamEmitterTest extends TestCase
     {
         $emitter = new StreamEmitter(5);
 
-        $response = new FakeResponse(
+        $response = new Response(
             headers: ['Content-Length' => '10'],
-            body:    new FakeStream('0123456789')
+            body:    '0123456789'
         );
 
         $this->assertTrue($emitter->shouldStream($response));
@@ -78,9 +77,9 @@ final class StreamEmitterTest extends TestCase
     {
         $emitter = new StreamEmitter(50);
 
-        $response = new FakeResponse(
+        $response = new Response(
             headers: ['Content-Length' => '10'],
-            body:    new FakeStream('0123456789')
+            body:    '0123456789'
         );
 
         $this->assertFalse($emitter->shouldStream($response));
