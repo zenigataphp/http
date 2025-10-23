@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http;
+namespace Zenigata\Http\Bootstrap;
 
 use Throwable;
 use Middlewares\Utils\Factory;
