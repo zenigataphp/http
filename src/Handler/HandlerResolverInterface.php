@@ -17,9 +17,10 @@ interface HandlerResolverInterface
     /**
      * Resolves a handler definition into a {@see RequestHandlerInterface}.
      *
-     * @param mixed $handler The handler definition provided by the router.
+     * @param mixed                $handler    The handler definition provided by the router.
+     * @param array<string,string> $parameters Route parameters (e.g., ["slug" => "hello"]).
      *
      * @return RequestHandlerInterface The resolved request handler.
      */
-    public function resolve(mixed $handler): RequestHandlerInterface;
+    public function resolve(mixed $handler, array $parameters = []): RequestHandlerInterface;
 }
