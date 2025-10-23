@@ -27,14 +27,13 @@
         "php": "^8.2 || ^8.3 || ^8.4",
         "psr/http-factory": "^1.1",
         "psr/http-server-middleware": "^1.0",
-        "zenigata/helpers": "^0.1"
+        "zenigata/utility": "^0.1"
     },
     "require-dev": {
         "mikey179/vfsstream": "^1.6",
         "nyholm/psr7": "^1.8",
         "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^11.5 || ^12.0",
-        "zenigata/testing": "^0.2"
+        "phpunit/phpunit": "^11.5 || ^12.0"
     },
     "scripts": {
         "stan": "vendor/bin/phpstan analyse src tests --memory-limit=512M",
