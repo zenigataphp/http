@@ -6,13 +6,13 @@ namespace Zenigata\Http\Middleware;
 
 use InvalidArgumentException;
 use LogicException;
+use Middlewares\Utils\HttpErrorException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Zenigata\Http\Handler\NotFoundHandler;
-use Zenigata\Helpers\ReflectionHelper;
+use Zenigata\Utility\Helper\ReflectionHelper;
 
 use function array_reverse;
 use function is_string;
@@ -44,7 +44,7 @@ class Dispatcher implements DispatcherInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $handler = $this->handler ?? new NotFoundHandler();
+        $handler = $this->handler ?? $this->notFoundHandler();
         $middleware = array_reverse($this->middleware);
 
         foreach ($middleware as $middleware) {
@@ -52,7 +52,7 @@ class Dispatcher implements DispatcherInterface
                 $middleware = $this->resolveDefinition($middleware);
             }
 
-            $handler = $this->createRequestHandler($middleware, $handler);
+            $handler = $this->wrapMiddleware($middleware, $handler);
         }
     
         return $handler->handle($request);
@@ -98,13 +98,23 @@ class Dispatcher implements DispatcherInterface
     }
 
     /**
+     * Creates a fallback request handler that throws an HTTP 404 error.
+     */
+    private function notFoundHandler(): RequestHandlerInterface
+    {
+        return new class implements RequestHandlerInterface {
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                throw new HttpErrorException('No handler available to process the request.', 404);
+            }
+        };
+    }
+
+    /**
      * Creates a request handler that wraps a middleware 
      * and the next handler in the chain.
      */
-    private function createRequestHandler(
-        MiddlewareInterface $middleware, 
-        RequestHandlerInterface $handler
-    ): RequestHandlerInterface
+    private function wrapMiddleware(MiddlewareInterface $middleware, RequestHandlerInterface $handler): RequestHandlerInterface
     {
         return new class($middleware, $handler) implements RequestHandlerInterface {
             public function __construct(
