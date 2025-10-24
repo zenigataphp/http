@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test\Unit\Emitter;
 
-use Laminas\HttpHandlerRunner\Emitter\EmitterInterface;
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Zenigata\Http\Emitter\EmitterInterface;
 use Zenigata\Http\Emitter\NullEmitter;
 
 /**
