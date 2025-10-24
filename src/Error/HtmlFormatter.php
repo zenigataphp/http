@@ -20,13 +20,21 @@ use function nl2br;
 final class HtmlFormatter implements FormatterInterface
 {
     /**
+     * The HTML page title common to all errors.
+     *
+     * @var string
+     */
+    private string $title;
+
+    /**
      * Creates a new html formatter instance.
      *
-     * @param string $title
+     * @param string $title The HTML page title.
      */
-    public function __construct(
-        private string $title = 'Something went wrong',
-    ) {}
+    public function __construct(string $title = 'Something went wrong')
+    {
+        $this->title = $title;
+    }
 
     /**
      * {@inheritDoc}
@@ -42,7 +50,10 @@ final class HtmlFormatter implements FormatterInterface
     public function format(Throwable $error, bool $debug): string
     {
         $message = $this->escape($error->getMessage());
-        $details = $debug === true ? $this->createDetails($error) : '';
+        
+        $details = $debug === true
+            ? $this->createDetails($error)
+            : '';
 
         return <<<HTML
 <!DOCTYPE html>

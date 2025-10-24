@@ -33,7 +33,10 @@ final class XmlFormatter implements FormatterInterface
     public function format(Throwable $error, bool $debug): string
     {
         $message = $this->escape($error->getMessage());
-        $details = $debug === true ? $this->createDetails($error) : '';
+
+        $details = $debug === true
+            ? $this->createDetails($error)
+            : '';
 
         return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
