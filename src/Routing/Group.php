@@ -12,7 +12,8 @@ use function rtrim;
 /**
  * Implementation of {@see GroupInterface}.
  *
- * Represents a collection of routes sharing a common path prefix and middleware stack.
+ * Represents a collection of routes sharing a common path prefix
+ * and optional middleware stack.
  */
 class Group implements GroupInterface
 {

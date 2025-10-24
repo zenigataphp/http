@@ -10,7 +10,8 @@ use function strtoupper;
 /**
  * Implementation of {@see RouteInterface}.
  * 
- * // TODO scrivere breve description di una, max due righe
+ * Represents a single HTTP route with its method, path, handler,
+ * and optional middleware stack.
  */
 class Route implements RouteInterface
 {
