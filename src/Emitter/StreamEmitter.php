@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Emitter;
 
-use Laminas\HttpHandlerRunner\Emitter\EmitterInterface;
 use Laminas\HttpHandlerRunner\Emitter\SapiStreamEmitter;
 use Psr\Http\Message\ResponseInterface;
 
@@ -19,9 +18,9 @@ class StreamEmitter implements EmitterInterface
     /**
      * The internal emitter handling stream-based output.
      *
-     * @var EmitterInterface
+     * @var SapiStreamEmitter
      */
-    private EmitterInterface $emitter;
+    private SapiStreamEmitter $emitter;
 
     /**
      * Buffer size in bytes for streaming the response body.
@@ -44,8 +43,8 @@ class StreamEmitter implements EmitterInterface
     /**
      * {@inheritDoc}
      *
-     * Emits the response using stream mode when appropriate,
-     * falling back silently if streaming is not applicable.
+     * Emits the response using stream mode when appropriate.
+     * Delegates emission to the internal emitter.
      */
     public function emit(ResponseInterface $response): bool
     {
@@ -55,14 +54,10 @@ class StreamEmitter implements EmitterInterface
     }
 
     /**
-     * Checks whether the response should be streamed.
+     * {@inheritDoc}
      *
      * Streaming is used for responses with file attachments, ranged content,
      * or when the body size exceeds the configured buffer limit.
-     *
-     * @param ResponseInterface $response The PSR-7 response to inspect.
-     * 
-     * @return bool True if the response qualifies for streaming.
      */
     public function shouldStream(ResponseInterface $response): bool
     {

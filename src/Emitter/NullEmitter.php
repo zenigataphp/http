@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Emitter;
 
-use Laminas\HttpHandlerRunner\Emitter\EmitterInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**

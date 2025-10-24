@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Zenigata\Http;
 
 use Throwable;
-use Laminas\HttpHandlerRunner\Emitter\EmitterInterface;
-use Laminas\HttpHandlerRunner\RequestHandlerRunner;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
+use Zenigata\Http\Bootstrap\Initializer;
+use Zenigata\Http\Bootstrap\InitializerInterface;
 use Zenigata\Http\Emitter\CombinedEmitter;
-use Zenigata\Http\Middleware\DispatcherInterface;
+use Zenigata\Http\Emitter\EmitterInterface;
+use Zenigata\Http\Error\ErrorHandler;
+use Zenigata\Http\Error\ErrorHandlerInterface;
 
 /**
  * Implementation of {@see HttpRunnerInterface}.
@@ -22,36 +26,57 @@ class HttpRunner implements HttpRunnerInterface
     /**
      * Creates a new HTTP runner instance.
      *
-     * @param DispatcherInterface       $dispatcher  Dispatcher responsible for middleware execution.
-     * @param bool                      $debug       Enables verbose error responses.
-     * @param InitializerInterface|null $initializer Initializer used to create server requests from globals.
-     * @param EmitterInterface|null     $emitter     Emitter used to send final responses to the client.
+     * @param RequestHandlerInterface    $handler      // TODO
+     * @param bool                       $debug        Enables verbose error responses.
+     * @param LoggerInterface|null       $logger       // TODO
+     * @param InitializerInterface|null  $initializer  Initializer used to create server requests from globals.
+     * @param EmitterInterface|null      $emitter      Emitter used to send final responses to the client.
+     * @param ErrorHandlerInterface|null $errorHandler // TODO
      */
     public function __construct(
-        private DispatcherInterface $dispatcher,
+        private RequestHandlerInterface $handler,
         private bool $debug = false,
+        private ?LoggerInterface $logger = null,
         private ?InitializerInterface $initializer = null,
         private ?EmitterInterface $emitter = null,
+        private ?ErrorHandlerInterface $errorHandler = null,
     ) {}
 
     /**
      * {@inheritDoc}
      * 
-     * Creates and runs a {@see RequestHandlerRunner} to handle the HTTP request.
-     * Executes middleware, emits the response, and creates a request if none is given.
+     * // TODO una, max due righe di description aggiuntiva rispetto al più generico contract
      */
-    public function run(?ServerRequestInterface $request = null): void
+    public function run(): void
     {
-        $this->initializer ??= new Initializer(debug: $this->debug);
-        $this->emitter ??= new CombinedEmitter();
+        $this->initialize();
 
-        $runner = new RequestHandlerRunner(
-            $this->dispatcher,
-            $this->emitter,
-            fn() => $request ?? $this->initializer->createServerRequest(),
-            fn(Throwable $e) => $this->initializer->createErrorResponse($e)
-        );
+        $request  = $this->createServerRequest();
 
-        $runner->run();
+        try {
+            $response = $this->handler->handle($request);
+
+            $this->emitter->emit($response);
+        } catch (Throwable $error) {
+            $this->errorHandler->handle($error, $request);
+        }
+    }
+
+    /**
+     * // TODO una riga di description
+     */
+    protected function createServerRequest(): ServerRequestInterface
+    {
+        return $this->initializer->fromGlobals();
+    }
+
+    /**
+     * // TODO una riga di description
+     */
+    private function initialize(): void
+    {
+        $this->initializer  ??= new Initializer();
+        $this->emitter      ??= new CombinedEmitter();
+        $this->errorHandler ??= new ErrorHandler([], $this->debug, $this->logger);
     }
 }

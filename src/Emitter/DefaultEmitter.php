@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Emitter;
 
-use Laminas\HttpHandlerRunner\Emitter\EmitterInterface;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Psr\Http\Message\ResponseInterface;
 
@@ -19,9 +18,9 @@ class DefaultEmitter implements EmitterInterface
     /**
      * The internal emitter used for standard SAPI output.
      *
-     * @var EmitterInterface
+     * @var SapiEmitter
      */
-    private EmitterInterface $emitter;
+    private SapiEmitter $emitter;
 
     /**
      * Creates a new default emitter instance.
