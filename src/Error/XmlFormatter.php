@@ -10,6 +10,7 @@ use const ENT_QUOTES;
 use const ENT_XML1;
 
 use function htmlspecialchars;
+use function implode;
 
 /**
  * Formats errors into a simple XML representation.
@@ -32,18 +33,40 @@ final class XmlFormatter implements FormatterInterface
     public function format(Throwable $error, bool $debug): string
     {
         $message = $this->escape($error->getMessage());
+        $details = $debug === true ? $this->createDetails($error) : '';
 
         return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <error>
     <message>{$message}</message>
-    <code>{$error->getCode()}</code>
+    {$details}
 </error>
 XML;
     }
 
     /**
-     * // TODO aggiungere una riga di spiegazione
+     * Generates the XML markup for error details.
+     */
+    private function createDetails(Throwable $error): string
+    {
+        $details = [
+            '<type>%s</type>',
+            '<file>%s</file>',
+            '<line>%d</line>',
+            '<trace>%s</trace>',
+        ];
+
+        return sprintf(
+            implode("\n", $details),
+            $this->escape($error::class),
+            $this->escape($error->getFile()),
+            $error->getLine(),
+            $this->escape($error->getTraceAsString())
+        );
+    }
+
+    /**
+     * Encodes text for safe inclusion in XML nodes.
      */
     private function escape(string $value): string
     {
