@@ -6,7 +6,6 @@ namespace Zenigata\Http\Test\Unit\Middleware;
 
 use const JSON_INVALID_UTF8_SUBSTITUTE;
 
-use Middlewares\Utils\HttpErrorException;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +13,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Zenigata\Http\Error\HttpError;
 use Zenigata\Http\Middleware\JsonPayloadMiddleware;
 
 /**
@@ -93,7 +93,7 @@ final class JsonPayloadMiddlewareTest extends TestCase
 
     public function testThrowsOnInvalidJson(): void
     {
-        $this->expectException(HttpErrorException::class);
+        $this->expectException(HttpError::class);
         $this->expectExceptionMessage('Bad Request');
 
         $middleware = new JsonPayloadMiddleware();
@@ -147,7 +147,7 @@ final class JsonPayloadMiddlewareTest extends TestCase
 
     public function testDepthOptionIsRespected(): void
     {
-        $this->expectException(HttpErrorException::class);
+        $this->expectException(HttpError::class);
         $this->expectExceptionMessage('Bad Request');
 
         $middleware = new JsonPayloadMiddleware(depth: 2);
