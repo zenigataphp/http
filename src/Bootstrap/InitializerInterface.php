@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Bootstrap;
 
-use Throwable;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -21,17 +19,24 @@ interface InitializerInterface
      *
      * @return ServerRequestInterface A PSR-7 server request derived from globals.
      */
-    public function createServerRequest(): ServerRequestInterface;
+    public function fromGlobals(): ServerRequestInterface;
 
     /**
-     * Creates an error response when initialization fails.
+     * Creates a server request instance from array values.
      *
-     * This method is only intended for bootstrapping errors, not for
-     * application-level exception handling.
-     *
-     * @param Throwable $error The initialization error or exception.
+     * @param array $server
+     * @param array $get
+     * @param array $post
+     * @param array $cookies
+     * @param array $files
      * 
-     * @return ResponseInterface A PSR-7 response representing the bootstrap failure.
+     * @return ServerRequestInterface
      */
-    public function createErrorResponse(Throwable $error): ResponseInterface;
+    public function fromArrays(
+        array $server  = [],
+        array $get     = [],
+        array $post    = [],
+        array $cookies = [],
+        array $files   = [],
+    ): ServerRequestInterface;
 }
