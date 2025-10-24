@@ -6,12 +6,12 @@ namespace Zenigata\Http\Middleware;
 
 use InvalidArgumentException;
 use LogicException;
-use Middlewares\Utils\HttpErrorException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Zenigata\Http\Error\HttpError;
 use Zenigata\Utility\Helper\ReflectionHelper;
 
 use function array_reverse;
@@ -105,7 +105,11 @@ class Dispatcher implements DispatcherInterface
         return new class implements RequestHandlerInterface {
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
-                throw new HttpErrorException('No handler available to process the request.', 404);
+                throw new HttpError(
+                    request: $request,
+                    message: 'No handler available to process the request.',
+                    code:    404
+                );
             }
         };
     }

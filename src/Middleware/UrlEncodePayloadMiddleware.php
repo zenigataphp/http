@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Middleware;
 
+use Throwable;
 use Middlewares\UrlEncodePayload;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Zenigata\Http\Error\HttpError;
 
 /**
  * Middleware for parsing URL-encoded request bodies.
@@ -51,6 +53,15 @@ class UrlEncodePayloadMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        return $this->middleware->process($request, $handler);
+        try {
+            return $this->middleware->process($request, $handler);
+        } catch (Throwable $e) { 
+            throw new HttpError(
+                request:  $request,
+                code:     400,
+                message:  $e->getMessage(),
+                previous: $e->getPrevious()
+            );
+        }
     }
 }

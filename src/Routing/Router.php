@@ -8,10 +8,10 @@ use InvalidArgumentException;
 use LogicException;
 use FastRoute\Dispatcher as RouteDispatcher;
 use FastRoute\RouteCollector;
-use Middlewares\Utils\HttpErrorException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Zenigata\Http\Error\HttpError;
 use Zenigata\Utility\Helper\ReflectionHelper;
 use Zenigata\Http\Handler\HandlerResolver;
 use Zenigata\Http\Handler\HandlerResolverInterface;
@@ -79,7 +79,7 @@ class Router implements RouterInterface
      * Delegates processing to the matched route's handler
      * and its middleware stack.
      * 
-     * @throws HttpErrorException If the request cannot be matched to a route.
+     * @throws HttpError If the request cannot be matched to a route.
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -94,9 +94,9 @@ class Router implements RouterInterface
 
         $route = match ($status) {
             self::FOUND       => $this->createMatch($method, $path, $data['handler'], $data['middleware'], $params),
-            self::NOT_FOUND   => throw HttpErrorException::create(404),
-            self::NOT_ALLOWED => throw HttpErrorException::create(405, ['Allowed methods: ' => $data]),
-            default           => throw new HttpErrorException('Unexpected routing error.', 500)
+            self::NOT_FOUND   => throw new HttpError($request, 404),
+            self::NOT_ALLOWED => throw new HttpError($request, 405, 'Allowed methods: ' . implode(', ', $data) . '.'),
+            default           => throw new HttpError($request, 500, 'Unexpected routing error.')
         };
 
         $request = $this->enrichRequest($request, $route);

@@ -19,6 +19,7 @@
         }
     },
     "require": {
+        "alexanderpas/http-enum": "^1.0",
         "laminas/laminas-httphandlerrunner": "^2.12",
         "middlewares/payload": "^3.1",
         "middlewares/utils": "^4.0",
