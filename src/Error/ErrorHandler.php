@@ -63,7 +63,7 @@ class ErrorHandler implements ErrorHandlerInterface
      */
     public function addFormatter(FormatterInterface $formatter): void
     {
-        if ($formatter->contentTypes() === []) {
+        if ($formatter->getContentTypes() === []) {
             throw new LogicException(sprintf(
                 'Formatter %s must declare at least one supported content type.',
                 $formatter::class
@@ -141,7 +141,7 @@ class ErrorHandler implements ErrorHandlerInterface
         $contentType = null;
 
         foreach ($this->formatters as $candidate) {
-            foreach ($candidate->contentTypes() as $type) {
+            foreach ($candidate->getContentTypes() as $type) {
                 if (str_contains($accept, $type)) {
                     $formatter = $candidate;
                     $contentType = $type;
@@ -152,7 +152,7 @@ class ErrorHandler implements ErrorHandlerInterface
         }
 
         $formatter   ??= $this->formatters[0];
-        $contentType ??= $formatter->contentTypes()[0];
+        $contentType ??= $formatter->getContentTypes()[0];
 
         return new FormatterMatch($formatter, $contentType);
     }

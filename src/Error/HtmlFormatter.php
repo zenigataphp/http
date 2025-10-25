@@ -17,8 +17,15 @@ use function nl2br;
  *
  * Provides a minimal HTML template suitable for browser responses.
  */
-final class HtmlFormatter implements FormatterInterface
+final class HtmlFormatter extends AbstractFormatter
 {
+    /**
+     * {@inheritDoc}
+     */
+    protected array $contentTypes = [
+        'text/html',
+    ];
+
     /**
      * The HTML page title common to all errors.
      *
@@ -39,21 +46,10 @@ final class HtmlFormatter implements FormatterInterface
     /**
      * {@inheritDoc}
      */
-    public function contentTypes(): array
-    {
-        return ['text/html'];   
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public function format(Throwable $error, bool $debug): string
     {
         $message = $this->escape($error->getMessage());
-        
-        $details = $debug === true
-            ? $this->createDetails($error)
-            : '';
+        $details = $debug === true ? $this->createDetails($error) : '';
 
         return <<<HTML
 <!DOCTYPE html>

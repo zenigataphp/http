@@ -17,15 +17,16 @@ use function implode;
  *
  * Produces an XML document describing the error message and code.
  */
-final class XmlFormatter implements FormatterInterface
+final class XmlFormatter extends AbstractFormatter
 {
     /**
      * {@inheritDoc}
      */
-    public function contentTypes(): array
-    {
-        return ['text/xml', 'application/xml', 'application/x-xml'];  
-    }
+    protected array $contentTypes = [
+        'text/xml',
+        'application/xml',
+        'application/x-xml',
+    ];
 
     /**
      * {@inheritDoc}
@@ -33,10 +34,7 @@ final class XmlFormatter implements FormatterInterface
     public function format(Throwable $error, bool $debug): string
     {
         $message = $this->escape($error->getMessage());
-
-        $details = $debug === true
-            ? $this->createDetails($error)
-            : '';
+        $details = $debug === true ? $this->createDetails($error) : '';
 
         return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>

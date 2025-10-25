@@ -13,15 +13,14 @@ use function sprintf;
  *
  * Provides a concise text output suitable for CLI or plain HTTP responses.
  */
-final class TextFormatter implements FormatterInterface
+final class TextFormatter extends AbstractFormatter
 {
     /**
      * {@inheritDoc}
      */
-    public function contentTypes(): array
-    {
-        return ['text/plain'];   
-    }
+    protected array $contentTypes = [
+        'text/plain',
+    ];
 
     /**
      * {@inheritDoc}

@@ -17,15 +17,14 @@ use function json_encode;
  *
  * Produces a JSON structure with the error message and code.
  */
-final class JsonFormatter implements FormatterInterface
+final class JsonFormatter extends AbstractFormatter
 {
     /**
      * {@inheritDoc}
      */
-    public function contentTypes(): array
-    {
-        return ['application/json'];   
-    }
+    protected array $contentTypes = [
+        'application/json',
+    ];
 
     /**
      * {@inheritDoc}
