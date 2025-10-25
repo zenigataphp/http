@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Middleware;
 
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
@@ -19,9 +17,6 @@ interface DispatcherInterface extends RequestHandlerInterface
 {   
     /**
      * Registers a middleware into the stack.
-     *
-     * Middleware can be passed directly as a {@see MiddlewareInterface}
-     * instance, or as a string identifier resolvable via a PSR-11 container.
      *
      * @param MiddlewareInterface|string $middleware Middleware instance, or container-resolvable identifier.
      *

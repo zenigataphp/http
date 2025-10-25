@@ -17,9 +17,6 @@ interface RouterInterface extends RequestHandlerInterface
 {
     /**
      * Registers a route, or a group of routes.
-     *
-     * Routes can be passed directly as a {@see RouteInterface} or {@see GroupInterface} instances,
-     * or as a string identifier resolvable via a PSR-11 container.
      * 
      * @param RouteInterface|GroupInterface|string $route Route, group, or container-resolvable identifier.
      *
