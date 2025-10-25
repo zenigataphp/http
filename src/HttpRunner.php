@@ -26,12 +26,12 @@ class HttpRunner implements HttpRunnerInterface
     /**
      * Creates a new HTTP runner instance.
      *
-     * @param RequestHandlerInterface    $handler      // TODO
-     * @param bool                       $debug        Enables verbose error responses.
-     * @param LoggerInterface|null       $logger       // TODO
+     * @param RequestHandlerInterface    $handler      The request handler that handles the incoming requests.
+     * @param bool                       $debug        Enables detailed error responses.
+     * @param LoggerInterface|null       $logger       Optional PSR-3 logger used to record errors.
      * @param InitializerInterface|null  $initializer  Initializer used to create server requests from globals.
      * @param EmitterInterface|null      $emitter      Emitter used to send final responses to the client.
-     * @param ErrorHandlerInterface|null $errorHandler // TODO
+     * @param ErrorHandlerInterface|null $errorHandler Error handler used to catch and format exceptions.
      */
     public function __construct(
         private RequestHandlerInterface $handler,
@@ -45,13 +45,14 @@ class HttpRunner implements HttpRunnerInterface
     /**
      * {@inheritDoc}
      * 
-     * // TODO una, max due righe di description aggiuntiva rispetto al più generico contract
+     * Initializes the request if needed, handles it, and emits the response; 
+     * errors are delegated to the configured error handler.
      */
-    public function run(): void
+    public function run(?ServerRequestInterface $request = null): void
     {
-        $this->initialize();
+        $this->prepare();
 
-        $request  = $this->createServerRequest();
+        $request ??= $this->initializer->fromGlobals();
 
         try {
             $response = $this->handler->handle($request);
@@ -63,17 +64,9 @@ class HttpRunner implements HttpRunnerInterface
     }
 
     /**
-     * // TODO una riga di description
+     * Ensures that all optional dependencies are properly initialized.
      */
-    protected function createServerRequest(): ServerRequestInterface
-    {
-        return $this->initializer->fromGlobals();
-    }
-
-    /**
-     * // TODO una riga di description
-     */
-    private function initialize(): void
+    private function prepare(): void
     {
         $this->initializer  ??= new Initializer();
         $this->emitter      ??= new CombinedEmitter();

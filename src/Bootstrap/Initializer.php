@@ -6,7 +6,6 @@ namespace Zenigata\Http\Bootstrap;
 
 use Middlewares\Utils\Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
-use Nyholm\Psr7Server\ServerRequestCreatorInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -27,9 +26,9 @@ class Initializer implements InitializerInterface
     /**
      * Responsible for creating server requests from PHP globals.
      *
-     * @var ServerRequestCreatorInterface
+     * @var ServerRequestCreator
      */
-    protected ServerRequestCreatorInterface $creator;
+    private ServerRequestCreator $creator;
 
     /**
      * Creates a new initializer instance.
