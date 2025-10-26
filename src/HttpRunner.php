@@ -52,7 +52,7 @@ class HttpRunner implements HttpRunnerInterface
     {
         $this->prepare();
 
-        $request ??= $this->initializer->fromGlobals();
+        $request ??= $this->initializer->createServerRequest();
 
         try {
             $response = $this->handler->handle($request);

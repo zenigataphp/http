@@ -55,22 +55,8 @@ class Initializer implements InitializerInterface
     /**
      * {@inheritDoc}
      */
-    public function fromGlobals(): ServerRequestInterface
+    public function createServerRequest(): ServerRequestInterface
     {
         return $this->creator->fromGlobals();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function fromArrays(
-        array $server  = [],
-        array $get     = [],
-        array $post    = [],
-        array $cookies = [],
-        array $files   = [],
-    ): ServerRequestInterface
-    {
-        return $this->creator->fromArrays($server, $get, $post, $cookies, $files);
     }
 }
