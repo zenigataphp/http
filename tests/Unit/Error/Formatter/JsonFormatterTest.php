@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Error;
+namespace Zenigata\Http\Test\Unit\Error\Formatter;
 
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Zenigata\Http\Error\JsonFormatter;
+use Zenigata\Http\Error\Formatter\JsonFormatter;
 
 use function json_decode;
 

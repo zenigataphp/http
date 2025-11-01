@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace Zenigata\Http\Test;
 
 use Throwable;
-use Zenigata\Http\Error\AbstractFormatter;
+use Zenigata\Http\Error\Formatter\AbstractFormatter;
 
 /**
- * // TODO
+ * Fake implementation of {@see AbstractFormatter}.
+ *
+ * Allows injecting custom content types and a formatter callback.
  */
 final class FakeFormatter extends AbstractFormatter
 {
     /**
-     * // TODO
+     * User-provided callback used to generate formatted output.
      *
      * @var callable(Throwable, bool):string
      */
@@ -22,8 +24,8 @@ final class FakeFormatter extends AbstractFormatter
     /**
      * Creates a new fake formatter instance.
      *
-     * @param string[]                         $types  // TODO documentare brevemente
-     * @param callable(Throwable, bool):string $format // TODO documentare brevemente
+     * @param string[]                         $types  List of supported MIME types (e.g. `['application/json']`).
+     * @param callable(Throwable, bool):string $format Callback used to produce the serialized error output.
      */
     public function __construct(array $types, callable $format)
     {
@@ -34,7 +36,7 @@ final class FakeFormatter extends AbstractFormatter
     /**
      * {@inheritDoc}
      * 
-     * Internally executes the provided format callback. // TODO corretto?
+     * Executes the injected format callback to generate the error body.
      */
     public function format(Throwable $error, bool $debug): string
     {

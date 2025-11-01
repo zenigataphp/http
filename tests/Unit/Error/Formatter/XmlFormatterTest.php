@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Error;
+namespace Zenigata\Http\Test\Unit\Error\Formatter;
 
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use SimpleXMLElement;
-use Zenigata\Http\Error\XmlFormatter;
+use Zenigata\Http\Error\Formatter\XmlFormatter;
 
 use function str_contains;
 use function simplexml_load_string;
