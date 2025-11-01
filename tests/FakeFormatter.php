@@ -22,8 +22,8 @@ final class FakeFormatter extends AbstractFormatter
     /**
      * Creates a new fake formatter instance.
      *
-     * @param string[]                         $types
-     * @param callable(Throwable, bool):string $format
+     * @param string[]                         $types  // TODO documentare brevemente
+     * @param callable(Throwable, bool):string $format // TODO documentare brevemente
      */
     public function __construct(array $types, callable $format)
     {
@@ -33,6 +33,8 @@ final class FakeFormatter extends AbstractFormatter
 
     /**
      * {@inheritDoc}
+     * 
+     * Internally executes the provided format callback. // TODO corretto?
      */
     public function format(Throwable $error, bool $debug): string
     {
