@@ -9,11 +9,17 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Zenigata\Console\Handler\HandlerResolverInterface;
+use Zenigata\Http\Handler\HandlerResolverInterface;
 use Zenigata\Http\Routing\GroupInterface;
 use Zenigata\Http\Routing\RouteInterface;
 use Zenigata\Http\Routing\Router;
 
+/**
+ * Middleware wrapping the {@see Router} handler.
+ *
+ * Matches incoming requests against the registered routing table
+ * and delegates execution to the resolved route handler.
+ */
 class RouterMiddleware implements MiddlewareInterface
 {
     /**
