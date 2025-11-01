@@ -11,6 +11,11 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
+use Zenigata\Http\Error\Formatter\FormatterInterface;
+use Zenigata\Http\Error\Formatter\HtmlFormatter;
+use Zenigata\Http\Error\Formatter\JsonFormatter;
+use Zenigata\Http\Error\Formatter\TextFormatter;
+use Zenigata\Http\Error\Formatter\XmlFormatter;
 
 use function sprintf;
 use function str_contains;
@@ -40,9 +45,9 @@ class ErrorHandler implements ErrorHandlerInterface
     /**
      * Creates a new error handler instance.
      *
-     * @param FormatterInterface[]          $formatters
-     * @param LoggerInterface|null          $logger
-     * @param ResponseFactoryInterface|null $responseFactory
+     * @param FormatterInterface[]          $formatters      List of formatters used to serialize error responses.
+     * @param LoggerInterface|null          $logger          Optional PSR-3 logger for recording exceptions and request context.
+     * @param ResponseFactoryInterface|null $responseFactory Optional factory to create PSR-7 response instances.
      */
     public function __construct(
         array $formatters = [],

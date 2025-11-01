@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Error;
+namespace Zenigata\Http\Error\Formatter;
 
 use Throwable;
 
