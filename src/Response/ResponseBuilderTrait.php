@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Handler;
+namespace Zenigata\Http\Response;
 
 use InvalidArgumentException;
 use RuntimeException;
 use Middlewares\Utils\Factory;
+use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
 use function basename;
@@ -37,6 +39,20 @@ trait ResponseBuilderTrait
      * @var int[]
      */
     private const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
+    
+    /**
+     * Factory used to generate PSR-7 responses.
+     *
+     * @var ResponseFactoryInterface|null
+     */
+    protected ?ResponseFactoryInterface $responseFactory = null;
+    
+    /**
+     * Factory used to generate PSR-7 streams.
+     *
+     * @var StreamFactoryInterface|null
+     */
+    protected ?StreamFactoryInterface $streamFactory = null;
 
     /**
      * Creates a new response instance.
@@ -49,7 +65,8 @@ trait ResponseBuilderTrait
      */
     public function createResponse(int $status = 200, mixed $body = null, array $headers = []): ResponseInterface
     {   
-        $response = Factory::getResponseFactory()->createResponse($status);
+        $responseFactory = $this->responseFactory ?? Factory::getResponseFactory();
+        $response = $responseFactory->createResponse($status);
 
         if ($body !== null) {
             $response = $response->withBody($this->createStream($body));
@@ -65,7 +82,7 @@ trait ResponseBuilderTrait
     /**
      * Creates a new stream instance.
      *
-     * @param mixed $body It should be a string, a resource, or a stream instance.
+     * @param string|resource|StreamInterface $body The body content as a string, resource, or PSR-7 stream.
      * 
      * @return StreamInterface The generated PSR-7 stream.
      * @throws InvalidArgumentException If the body type is not a valid.
@@ -76,7 +93,7 @@ trait ResponseBuilderTrait
             return $body;
         }
 
-        $streamFactory = Factory::getStreamFactory();
+        $streamFactory = $this->streamFactory ?? Factory::getStreamFactory();
 
         return match (true) {
             is_string($body)   => $streamFactory->createStream($body),
@@ -110,7 +127,10 @@ trait ResponseBuilderTrait
         $json = json_encode($data, $flags, $depth);
 
         if ($json === false) {
-            throw new RuntimeException('JSON encoding failed: ' . json_last_error_msg());
+            throw new RuntimeException(sprintf(
+                'Failed to encode response body to JSON: %s.',
+                json_last_error_msg()
+            ));
         }
 
         $headers['Content-Type'] = ['application/json'];
@@ -231,23 +251,28 @@ trait ResponseBuilderTrait
         array $headers      = []
     ): ResponseInterface {
         if (!is_readable($path)) {
-            throw new RuntimeException("File not readable or missing: $path");
+            throw new RuntimeException(sprintf(
+                "Cannot create file response: file '%s' is not readable or does not exist.",
+                $path
+            ));
         }
 
         $resource = fopen($path, 'rb');
 
         if ($resource === false) {
-            throw new RuntimeException("Unable to open file for reading: $path");
+            throw new RuntimeException(sprintf(
+                "Cannot create file response: failed to open file '%s' for reading.",
+                $path
+            ));
         }
 
         $body = $this->createStream($resource);
         
-        $filename = $filename ?? basename($path);
+        $filename   = $filename ?? basename($path);
         $encodedUrl = rawurlencode($filename);
-        $contentDisposition = "{$disposition}; filename=\"{$filename}\"; filename*=UTF-8''{$encodedUrl}";
         
-        $headers['Content-Type'] = [mime_content_type($path) ?: 'application/octet-stream'];
-        $headers['Content-Disposition'] = [$contentDisposition];
+        $headers['Content-Disposition'] = ["{$disposition}; filename=\"{$filename}\"; filename*=UTF-8''{$encodedUrl}"];
+        $headers['Content-Type']        = [mime_content_type($path) ?: 'application/octet-stream'];
         
         $size = filesize($path);
 

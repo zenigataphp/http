@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Handler;
+namespace Zenigata\Http\Test\Unit\Response;
 
 use InvalidArgumentException;
 use RuntimeException;
@@ -13,7 +13,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Zenigata\Http\Handler\ResponseBuilderTrait;
+use Zenigata\Http\Response\ResponseBuilderTrait;
 
 use function fopen;
 use function tmpfile;
