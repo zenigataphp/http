@@ -68,9 +68,9 @@ final class ErrorHandlerTest extends TestCase
         );
 
         $request = new ServerRequest('GET', '/', ['Accept' => 'application/json']);
-        $handler = new ErrorHandler([$formatter], debug: false);
+        $handler = new ErrorHandler([$formatter]);
 
-        $response = $handler->handle($this->error, $request);
+        $response = $handler->handle($request, $this->error, debug: false);
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(500, $response->getStatusCode());
@@ -90,9 +90,9 @@ final class ErrorHandlerTest extends TestCase
         ); 
 
         $request = new ServerRequest('GET', '/', ['Accept' => 'text/plain']);
-        $handler = new ErrorHandler([$formatter], debug: true);
+        $handler = new ErrorHandler([$formatter]);
 
-        $response = $handler->handle($this->error, $request);
+        $response = $handler->handle($request, $this->error, debug: true);
 
         $this->assertSame(500, $response->getStatusCode());
         $this->assertStringContainsString('DEBUG: Custom error message', (string) $response->getBody());
@@ -108,7 +108,7 @@ final class ErrorHandlerTest extends TestCase
         $httpError = new HttpError(new ServerRequest('POST', '/hello'), 404);
         $handler = new ErrorHandler([$formatter]);
 
-        $response = $handler->handle($httpError, new ServerRequest('GET', '/ignored'));
+        $response = $handler->handle(new ServerRequest('GET', '/ignored'), $httpError);
 
         $this->assertSame(404, $response->getStatusCode());
         $this->assertSame('application/json', $response->getHeaderLine('Content-Type'));
@@ -126,7 +126,7 @@ final class ErrorHandlerTest extends TestCase
         $handler = new ErrorHandler([$formatter], logger: $logger);
         $request = new ServerRequest('GET', '/test');
 
-        $handler->handle($this->error, $request);
+        $handler->handle($request, $this->error);
 
         $logs = $logger->all();
 
@@ -141,7 +141,7 @@ final class ErrorHandlerTest extends TestCase
         $handler = new ErrorHandler();
         $request = new ServerRequest('GET', '/', ['Accept' => 'text/plain']);
 
-        $response = $handler->handle($this->error, $request);
+        $response = $handler->handle($request, $this->error);
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(500, $response->getStatusCode());
@@ -164,7 +164,7 @@ final class ErrorHandlerTest extends TestCase
         $handler = new ErrorHandler([$jsonFormatter, $xmlFormatter]);
         $request = new ServerRequest('GET', '/', ['Accept' => 'application/xml']);
 
-        $response = $handler->handle($this->error, $request);
+        $response = $handler->handle($request, $this->error);
 
         $this->assertSame('application/xml', $response->getHeaderLine('Content-Type'));
         $this->assertStringContainsString('<xml', (string) $response->getBody());
@@ -183,7 +183,7 @@ final class ErrorHandlerTest extends TestCase
         );
 
         $handler = new ErrorHandler([$formatterA, $formatterB]);
-        $response = $handler->handle($this->error, new ServerRequest('GET', '/'));
+        $response = $handler->handle(new ServerRequest('GET', '/'), $this->error);
 
         $this->assertSame('text/plain', $response->getHeaderLine('Content-Type'));
         $this->assertSame('plain', (string) $response->getBody());
