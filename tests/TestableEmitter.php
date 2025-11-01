@@ -7,14 +7,16 @@ namespace Zenigata\Http\Test;
 use Zenigata\Http\Response\Emitter;
 
 /**
- * // TODO
+ * Test double for {@see Emitter}.
+ * 
+ * Records emitted headers and simulates environment state.
  */
 final class TestableEmitter extends Emitter
 {
     /**
-     * // TODO documentare property e type
+     * Collection of headers emitted during test execution.
      *
-     * @var array
+     * @var array<int,array{header:string,replace:bool,code:int}>
      */
     private array $sentHeaders = [];
 
@@ -22,8 +24,8 @@ final class TestableEmitter extends Emitter
      * Creates a new testable emitter instance.
      *
      * @param int  $bufferLength     The maximum number of bytes to read and emit per iteration.
-     * @param bool $headersSent      // TODO documentare brevemente
-     * @param bool $connectionNormal // TODO documentare brevemente
+     * @param bool $headersSent      Whether to simulate the condition of headers already being sent.
+     * @param bool $connectionNormal Whether to simulate an active client connection.
      */
     public function __construct(
         int $bufferLength = 8192,
@@ -34,9 +36,9 @@ final class TestableEmitter extends Emitter
     }
 
     /**
-     * Returns ... // TODO documentare method, return type
+     * Returns all headers captured during emission.
      *
-     * @return array
+     * @return array<int,array{header:string,replace:bool,code:int}>
      */
     public function getSentHeaders(): array
     {
@@ -46,7 +48,7 @@ final class TestableEmitter extends Emitter
     /**
      * {@inheritDoc}
      * 
-     * Override for testing and control. // TODO corretto?
+     * Overridden for controlled testing behavior.
      */
     protected function headersSent(): bool
     {
@@ -56,7 +58,7 @@ final class TestableEmitter extends Emitter
     /**
      * {@inheritDoc}
      * 
-     * Override for testing and control. // TODO corretto?
+     * Overridden for controlled testing behavior.
      */
     protected function sendHeader(string $header, bool $replace, int $code = 0): void
     {
@@ -70,7 +72,7 @@ final class TestableEmitter extends Emitter
     /**
      * {@inheritDoc}
      * 
-     * Override for testing and control. // TODO corretto?
+     * Overridden for controlled testing behavior.
      */
     protected function isConnectionNormal(): bool
     {
