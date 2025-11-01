@@ -8,12 +8,12 @@ use Throwable;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
-use Zenigata\Http\Bootstrap\Initializer;
-use Zenigata\Http\Bootstrap\InitializerInterface;
-use Zenigata\Http\Emitter\CombinedEmitter;
-use Zenigata\Http\Emitter\EmitterInterface;
 use Zenigata\Http\Error\ErrorHandler;
 use Zenigata\Http\Error\ErrorHandlerInterface;
+use Zenigata\Http\Request\Initializer;
+use Zenigata\Http\Request\InitializerInterface;
+use Zenigata\Http\Response\Emitter;
+use Zenigata\Http\Response\EmitterInterface;
 
 /**
  * Implementation of {@see HttpRunnerInterface}.
@@ -50,26 +50,17 @@ class HttpRunner implements HttpRunnerInterface
      */
     public function run(?ServerRequestInterface $request = null): void
     {
-        $this->prepare();
-
-        $request ??= $this->initializer->createServerRequest();
+        $this->initializer  ??= new Initializer();
+        $this->emitter      ??= new Emitter();
+        $this->errorHandler ??= new ErrorHandler(logger: $this->logger);
 
         try {
+            $request ??= $this->initializer->createServerRequest();
             $response = $this->handler->handle($request);
-
-            $this->emitter->emit($response);
         } catch (Throwable $error) {
-            $this->errorHandler->handle($error, $request);
+            $response = $this->errorHandler->handle($request, $error, $this->debug);
         }
-    }
 
-    /**
-     * Ensures that all optional dependencies are properly initialized.
-     */
-    private function prepare(): void
-    {
-        $this->initializer  ??= new Initializer();
-        $this->emitter      ??= new CombinedEmitter();
-        $this->errorHandler ??= new ErrorHandler([], $this->debug, $this->logger);
+        $this->emitter->emit($response);
     }
 }
