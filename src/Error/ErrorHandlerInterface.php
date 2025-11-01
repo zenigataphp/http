@@ -28,10 +28,11 @@ interface ErrorHandlerInterface
     /**
      * Converts an exception into a PSR-7 response.
      *
-     * @param Throwable              $error   The caught exception or error.
      * @param ServerRequestInterface $request The incoming request that triggered the error.
+     * @param Throwable              $error   The caught exception or error.
+     * @param bool                   $debug   When enabled, responses will contain error details.
      *
      * @return ResponseInterface The generated error response.
      */
-    public function handle(Throwable $error, ServerRequestInterface $request): ResponseInterface;
+    public function handle(ServerRequestInterface $request, Throwable $error, bool $debug = false): ResponseInterface;
 }

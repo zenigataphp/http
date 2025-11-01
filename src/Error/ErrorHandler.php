@@ -41,13 +41,11 @@ class ErrorHandler implements ErrorHandlerInterface
      * Creates a new error handler instance.
      *
      * @param FormatterInterface[]          $formatters
-     * @param bool                          $debug
      * @param LoggerInterface|null          $logger
      * @param ResponseFactoryInterface|null $responseFactory
      */
     public function __construct(
         array $formatters = [],
-        private bool $debug = false,
         private ?LoggerInterface $logger = null,
         ?ResponseFactoryInterface $responseFactory = null,
     ) {
@@ -79,29 +77,28 @@ class ErrorHandler implements ErrorHandlerInterface
      * Determines the best formatter based on the request’s `Accept` header
      * and produces a response containing the serialized error.
      */
-    public function handle(Throwable $error, ServerRequestInterface $request): ResponseInterface
+    public function handle(ServerRequestInterface $request, Throwable $error, bool $debug = false): ResponseInterface
     {
         $request = $error instanceof HttpError ? $error->getRequest() : $request;
         $code    = $error instanceof HttpError ? $error->getCode() : 500;
 
-        if ($this->logger !== null) {
-            $this->logError($error, $request);
-        }
+        $this->logger?->error($error->getMessage(), [
+            'exception'      => $error,
+            'request_method' => $request->getMethod(),
+            'request_uri'    => (string) $request->getUri(),
+        ]);
 
         if ($this->formatters === []) {
             $this->formatters = $this->defaultFormatters();
         }
 
-        $result  = $this->detectFormatter($request);
+        [$formatter, $contentType]  = $this->detectFormatter($request);
 
-        $formatter   = $result->formatter;
-        $contentType = $result->contentType;
-
-        if ($this->debug === false) {
+        if ($debug === false) {
             $error = new HttpError($request, $code);
         }
 
-        $body = $formatter->format($error, $this->debug);
+        $body = $formatter->format($error, $debug);
 
         $response = $this->responseFactory->createResponse($code);
         $response->getBody()->write($body);
@@ -110,51 +107,26 @@ class ErrorHandler implements ErrorHandlerInterface
     }
 
     /**
-     * Logs contextual information about the error and request, if a logger is configured.
-     */
-    private function logError(Throwable $error, ServerRequestInterface $request): void
-    {
-        $context = [
-            'request_method'    => $request->getMethod(),
-            'request_uri'       => (string) $request->getUri(),
-            'exception_message' => $error->getMessage(),
-            'exception_type'    => $error::class,
-            'exception_code'    => $error->getCode(),
-            'exception_file'    => $error->getFile(),
-            'exception_line'    => $error->getLine(),
-            'exception_trace'   => $error->getTraceAsString(),
-        ];
-
-        $this->logger->error($error->getMessage(), $context);
-    }
-
-    /**
      * Selects the most appropriate formatter based on the request’s `Accept` header.
      *
-     * @return FormatterMatch The chosen formatter and matching content type.
+     * @return array{0:FormatterInterface,1:string} The chosen formatter and matching content type.
      */
-    private function detectFormatter(ServerRequestInterface $request): FormatterMatch
+    private function detectFormatter(ServerRequestInterface $request): array
     {
         $accept = $request->getHeaderLine('Accept');
 
-        $formatter   = null;
-        $contentType = null;
-
-        foreach ($this->formatters as $candidate) {
-            foreach ($candidate->getContentTypes() as $type) {
-                if (str_contains($accept, $type)) {
-                    $formatter = $candidate;
-                    $contentType = $type;
-
-                    break 2;
+        foreach ($this->formatters as $formatter) {
+            foreach ($formatter->getContentTypes() as $contentType) {
+                if (str_contains($accept, $contentType)) {
+                    return [$formatter, $contentType];
                 }
             }
         }
 
-        $formatter   ??= $this->formatters[0];
-        $contentType ??= $formatter->getContentTypes()[0];
+        $formatter   = $this->formatters[0];
+        $contentType = $formatter->getContentTypes()[0];
 
-        return new FormatterMatch($formatter, $contentType);
+        return [$formatter, $contentType];
     }
 
     /**
