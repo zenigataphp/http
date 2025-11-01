@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Bootstrap;
+namespace Zenigata\Http\Request;
 
 use Middlewares\Utils\Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
@@ -19,7 +19,8 @@ use Psr\Http\Message\UriFactoryInterface;
  * and provides a fallback response if initialization fails.
  * 
  * Internally relies on `nyholm/psr7-server` to build the server request.
- * See https://github.com/Nyholm/psr7-server
+ * 
+ * @link https://github.com/Nyholm/psr7-server
  */
 class Initializer implements InitializerInterface
 {

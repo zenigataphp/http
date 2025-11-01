@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Bootstrap;
+namespace Zenigata\Http\Request;
 
 use Psr\Http\Message\ServerRequestInterface;
 
