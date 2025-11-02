@@ -6,7 +6,7 @@ namespace Zenigata\Http\Routing;
 
 use InvalidArgumentException;
 use LogicException;
-use FastRoute\Dispatcher as RouteDispatcher;
+use FastRoute\Dispatcher as FastRoute;
 use FastRoute\RouteCollector;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -15,7 +15,7 @@ use Zenigata\Http\Error\HttpError;
 use Zenigata\Utility\Helper\ReflectionHelper;
 use Zenigata\Http\Handler\HandlerResolver;
 use Zenigata\Http\Handler\HandlerResolverInterface;
-use Zenigata\Http\Middleware\Dispatcher as MiddlewareDispatcher;
+use Zenigata\Http\Middleware\Dispatcher;
 
 use function array_map;
 use function dirname;
@@ -28,24 +28,24 @@ class Router implements RouterInterface
     /**
      * @var int
      */
-    private const FOUND = RouteDispatcher::FOUND;
+    private const FOUND = FastRoute::FOUND;
 
     /**
      * @var int
      */
-    private const NOT_FOUND = RouteDispatcher::NOT_FOUND;
+    private const NOT_FOUND = FastRoute::NOT_FOUND;
 
     /**
      * @var int
      */
-    private const NOT_ALLOWED = RouteDispatcher::METHOD_NOT_ALLOWED;
+    private const NOT_ALLOWED = FastRoute::METHOD_NOT_ALLOWED;
 
     /**
-     * FastRoute dispatcher instance used for matching requests to routes.
+     * FastRoute instance used for matching requests to routes.
      *
-     * @var RouteDispatcher|null
+     * @var FastRoute|null
      */
-    private ?RouteDispatcher $router = null;
+    private ?FastRoute $router = null;
 
     /**
      * Indicates if the routes are flattened to an array of {@see RouteInterface}.
@@ -100,7 +100,7 @@ class Router implements RouterInterface
         };
 
         $request = $this->enrichRequest($request, $route);
-        $dispatcher = new MiddlewareDispatcher($route->middleware, $route->handler, $this->container);
+        $dispatcher = new Dispatcher($route->middleware, $route->handler, $this->container);
 
         return $dispatcher->handle($request);
     }
@@ -139,10 +139,10 @@ class Router implements RouterInterface
     }
 
     /**
-     * Lazily builds and returns a FastRoute dispatcher using {@see cachedDispatcher},
+     * Lazily builds and returns a FastRoute instance using {@see cachedDispatcher},
      * which compiles all routes into an optimized routing table.
      */
-    private function router(): RouteDispatcher
+    private function router(): FastRoute
     {
         return $this->router ??= cachedDispatcher(
             fn(RouteCollector $collector) => array_map(
@@ -158,7 +158,7 @@ class Router implements RouterInterface
             ),
             [
                 'cacheFile'     => $this->cacheFile ?? dirname(__DIR__, 4) . '/.router_cache.php',
-                'cacheDisabled' => !$this->enableCache,
+                'cacheDisabled' => $this->enableCache === false,
             ]
         );
     }
