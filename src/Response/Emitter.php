@@ -6,6 +6,7 @@ namespace Zenigata\Http\Response;
 
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 
 use const CONNECTION_NORMAL;
 
@@ -31,7 +32,7 @@ class Emitter implements EmitterInterface
      *
      * @var int[]
      */
-    public const STATUS_CODES_WITHOUT_BODY = [204, 205, 304];
+    public const CODES_WITHOUT_BODY = [204, 205, 304];
 
     /**
      * Maximum bytes emitted per iteration to balance memory and responsiveness.
@@ -97,6 +98,24 @@ class Emitter implements EmitterInterface
     }
 
     /**
+     * Determines if the response body should be considered empty.
+     */
+    private function isResponseEmpty(ResponseInterface $response): bool
+    {
+        if (in_array($response->getStatusCode(), self::CODES_WITHOUT_BODY, true)) {
+            return true;
+        }
+
+        $body = $response->getBody();
+
+        if ($body->isSeekable()) {
+            $body->rewind();
+        }
+
+        return $body->eof() || $body->read(1) === '';
+    }
+
+    /**
      * Emits all headers from the response.
      */
     private function emitHeaders(ResponseInterface $response): void
@@ -148,12 +167,24 @@ class Emitter implements EmitterInterface
         $length = (int) $response->getHeaderLine('Content-Length');
 
         if ($length === 0) {
-            $length = $body->getSize() ?? 0;
+            $length = $body->getSize() ?: 0;
         }
 
+        if ($length > 0) {
+            $this->streamChunks($body, $length);
+        } else {
+            $this->streamBody($body);
+        }
+    }
+
+    /**
+     * Emits the body in controlled chunks when total length is known.
+     */
+    private function streamChunks(StreamInterface $body, int $length): void
+    {
         while (!$body->eof()) {
-            $chunk = $this->calculateChunkSize($length);
-            $data  = $body->read($chunk);
+            $chunk = min($this->bufferLength, $length);
+            $data = $body->read($chunk);
 
             echo $data;
 
@@ -166,32 +197,16 @@ class Emitter implements EmitterInterface
     }
 
     /**
-     * Calculates the optimal chunk size for streaming a response.
+     * Emits the body in chunks when total length is unknown.
      */
-    private function calculateChunkSize(int $remaining): int
+    private function streamBody(StreamInterface $body): void
     {
-        return $remaining > 0
-            ? min($this->bufferLength, $remaining)
-            : $this->bufferLength;
-    }
+        while (!$body->eof()) {
+            echo $body->read($this->bufferLength);
 
-    /**
-     * Determines if the response body should be considered empty.
-     */
-    private function isResponseEmpty(ResponseInterface $response): bool
-    {
-        $statusCode = $response->getStatusCode();
-
-        if (in_array($statusCode, self::STATUS_CODES_WITHOUT_BODY, true)) {
-            return true;
+            if (!$this->isConnectionNormal()) {
+                break;
+            }
         }
-
-        $body = $response->getBody();
-
-        if ($body->isSeekable()) {
-            $body->rewind();
-        }
-
-        return $body->eof() || $body->read(1) === '';
     }
 }

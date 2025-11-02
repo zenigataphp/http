@@ -62,7 +62,7 @@ class EmitterTest extends TestCase
 
     public function testDoesNotEmitBodyForEmptyResponses(): void
     {
-        foreach (Emitter::STATUS_CODES_WITHOUT_BODY as $code) {
+        foreach (Emitter::CODES_WITHOUT_BODY as $code) {
             $response = new Response($code);
             $emitter = new TestableEmitter();
     
