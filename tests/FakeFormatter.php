@@ -34,7 +34,7 @@ final class FakeFormatter extends AbstractFormatter
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      * 
      * Executes the injected format callback to generate the error body.
      */

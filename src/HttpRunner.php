@@ -43,7 +43,7 @@ class HttpRunner implements HttpRunnerInterface
     ) {}
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      * 
      * Initializes the request if needed, handles it, and emits the response; 
      * errors are delegated to the configured error handler.

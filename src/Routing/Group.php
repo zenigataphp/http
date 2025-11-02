@@ -56,7 +56,7 @@ class Group implements GroupInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function getRoutes(): array
     {

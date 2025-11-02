@@ -16,14 +16,14 @@ use function sprintf;
 final class TextFormatter extends AbstractFormatter
 {
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected array $contentTypes = [
         'text/plain',
     ];
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function format(Throwable $error, bool $debug): string
     {

@@ -56,7 +56,7 @@ class JsonPayloadMiddleware implements MiddlewareInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * Delegates processing to internal middleware.
      */

@@ -47,7 +47,7 @@ class UrlEncodePayloadMiddleware implements MiddlewareInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * Delegates processing to internal middleware.
      */

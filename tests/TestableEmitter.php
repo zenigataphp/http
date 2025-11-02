@@ -46,7 +46,7 @@ final class TestableEmitter extends Emitter
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      * 
      * Overridden for controlled testing behavior.
      */
@@ -56,7 +56,7 @@ final class TestableEmitter extends Emitter
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      * 
      * Overridden for controlled testing behavior.
      */
@@ -70,7 +70,7 @@ final class TestableEmitter extends Emitter
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      * 
      * Overridden for controlled testing behavior.
      */

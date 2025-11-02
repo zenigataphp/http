@@ -30,7 +30,7 @@ final class JsonFormatterTest extends TestCase
     private RuntimeException $error;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected function setUp(): void
     {

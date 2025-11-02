@@ -74,7 +74,7 @@ class Router implements RouterInterface
     ) {}
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      * 
      * Delegates processing to the matched route's handler
      * and its middleware stack.
@@ -106,7 +106,7 @@ class Router implements RouterInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function register(RouteInterface|GroupInterface|string $route): void
     {
@@ -114,7 +114,7 @@ class Router implements RouterInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function getRoutes(): array
     {

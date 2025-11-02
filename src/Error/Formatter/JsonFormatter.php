@@ -20,14 +20,14 @@ use function json_encode;
 final class JsonFormatter extends AbstractFormatter
 {
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected array $contentTypes = [
         'application/json',
     ];
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function format(Throwable $error, bool $debug): string
     {

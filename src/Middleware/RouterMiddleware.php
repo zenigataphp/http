@@ -58,7 +58,7 @@ class RouterMiddleware implements MiddlewareInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * Delegates processing to internal handler.
      */

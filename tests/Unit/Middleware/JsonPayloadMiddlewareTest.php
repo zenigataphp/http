@@ -38,7 +38,7 @@ final class JsonPayloadMiddlewareTest extends TestCase
     private RequestHandlerInterface $handler;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected function setUp(): void
     {

@@ -38,7 +38,7 @@ final class ResponseBuilderTest extends TestCase
     private ResponseBuilder $responseBuilder;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected function setUp(): void
     {

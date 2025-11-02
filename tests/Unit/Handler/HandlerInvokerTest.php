@@ -27,7 +27,7 @@ final class HandlerInvokerTest extends TestCase
     private array $parameters;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected function setUp(): void
     {

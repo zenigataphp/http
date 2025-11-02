@@ -54,7 +54,7 @@ class Initializer implements InitializerInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function createServerRequest(): ServerRequestInterface
     {

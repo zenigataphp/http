@@ -40,7 +40,7 @@ class Dispatcher implements DispatcherInterface
     ) {}
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -59,7 +59,7 @@ class Dispatcher implements DispatcherInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function register(MiddlewareInterface|string $middleware): void
     {

@@ -27,7 +27,7 @@ final class TextFormatterTest extends TestCase
     private RuntimeException $error;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected function setUp(): void
     {

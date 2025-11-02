@@ -32,7 +32,7 @@ final class HtmlFormatterTest extends TestCase
     private RuntimeException $error;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected function setUp(): void
     {

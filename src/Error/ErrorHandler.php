@@ -62,7 +62,7 @@ class ErrorHandler implements ErrorHandlerInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function addFormatter(FormatterInterface $formatter): void
     {
@@ -77,7 +77,7 @@ class ErrorHandler implements ErrorHandlerInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      * 
      * Determines the best formatter based on the request’s `Accept` header
      * and produces a response containing the serialized error.

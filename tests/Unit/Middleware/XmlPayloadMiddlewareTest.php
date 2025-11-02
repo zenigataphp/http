@@ -34,7 +34,7 @@ final class XmlPayloadMiddlewareTest extends TestCase
     private RequestHandlerInterface $handler;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected function setUp(): void
     {

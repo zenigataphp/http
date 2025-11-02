@@ -47,7 +47,7 @@ class XmlPayloadMiddleware implements MiddlewareInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * Delegates processing to internal middleware.
      */

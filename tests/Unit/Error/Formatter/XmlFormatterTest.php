@@ -33,7 +33,7 @@ final class XmlFormatterTest extends TestCase
     private RuntimeException $error;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected function setUp(): void
     {

@@ -240,7 +240,7 @@ class Route implements RouteInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function getMethod(): string
     {
@@ -248,7 +248,7 @@ class Route implements RouteInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function getPath(): string
     {
@@ -256,7 +256,7 @@ class Route implements RouteInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function getHandler(): mixed
     {
@@ -264,7 +264,7 @@ class Route implements RouteInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function getMiddleware(): array
     {

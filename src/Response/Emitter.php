@@ -58,7 +58,7 @@ class Emitter implements EmitterInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function emit(ResponseInterface $response): void
     {

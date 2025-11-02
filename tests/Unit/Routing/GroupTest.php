@@ -32,7 +32,7 @@ final class GroupTest extends TestCase
     private array $middleware;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected function setUp(): void
     {

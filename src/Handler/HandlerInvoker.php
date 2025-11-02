@@ -27,7 +27,7 @@ class HandlerInvoker implements HandlerInvokerInterface
     ) {}
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      * 
      * Parameters are passed as named or positional arguments,
      * depending on the constructor flag.

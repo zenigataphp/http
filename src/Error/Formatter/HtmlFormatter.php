@@ -20,7 +20,7 @@ use function nl2br;
 final class HtmlFormatter extends AbstractFormatter
 {
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected array $contentTypes = [
         'text/html',
@@ -44,7 +44,7 @@ final class HtmlFormatter extends AbstractFormatter
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function format(Throwable $error, bool $debug): string
     {

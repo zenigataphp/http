@@ -20,7 +20,7 @@ use function implode;
 final class XmlFormatter extends AbstractFormatter
 {
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected array $contentTypes = [
         'text/xml',
@@ -29,7 +29,7 @@ final class XmlFormatter extends AbstractFormatter
     ];
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function format(Throwable $error, bool $debug): string
     {

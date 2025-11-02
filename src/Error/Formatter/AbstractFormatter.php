@@ -22,12 +22,12 @@ abstract class AbstractFormatter implements FormatterInterface
     protected array $contentTypes = [];
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     abstract public function format(Throwable $error, bool $debug): string;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function getContentTypes(): array
     {
