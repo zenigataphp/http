@@ -7,19 +7,16 @@ namespace Zenigata\Http\Test\Unit\Response;
 use InvalidArgumentException;
 use RuntimeException;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\CoversTrait;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use Zenigata\Http\Response\ResponseBuilderTrait;
+use Zenigata\Http\Response\ResponseBuilder;
 
 use function fopen;
 use function tmpfile;
 
 /**
- * Unit test for {@see ResponseBuilderTrait}.
+ * Unit test for {@see ResponseBuilder}.
  *
  * Verifies that the response builder utility correctly creates various types of PSR-7
  * {@see ResponseInterface} instances from different inputs, handling headers, status codes,
@@ -35,34 +32,22 @@ use function tmpfile;
  * - Streams from strings/resources yield {@see StreamInterface}.
  * - JSON encoding errors throw {@see RuntimeException}.  
  */
-#[CoversTrait(ResponseBuilderTrait::class)]
-final class ResponseBuilderTraitTest extends TestCase
+#[CoversClass(ResponseBuilder::class)]
+final class ResponseBuilderTest extends TestCase
 {
-    /**
-     * Anonymous class instance using {@see ResponseBuilderTrait}.
-     * 
-     * @var object
-     */
-    private object $instance;
+    private ResponseBuilder $responseBuilder;
 
     /**
      * {@inheritDoc}
      */
     protected function setUp(): void
     {
-        $this->instance = new class implements RequestHandlerInterface {
-            use ResponseBuilderTrait;
-
-            public function handle(ServerRequestInterface $request): ResponseInterface
-            {
-                throw new RuntimeException('Not used in tests');
-            }
-        };
+        $this->responseBuilder = new ResponseBuilder();
     }
 
     public function testCreateResponse(): void
     {
-        $response = $this->instance->createResponse(200, 'hello');
+        $response = $this->responseBuilder->createResponse(200, 'hello');
 
         $this->assertSame('hello', (string) $response->getBody());
         $this->assertSame(200, $response->getStatusCode());
@@ -70,7 +55,7 @@ final class ResponseBuilderTraitTest extends TestCase
 
     public function testCreateStreamFromString(): void
     {
-        $body = $this->instance->createStream('string content');
+        $body = $this->responseBuilder->createStream('string content');
 
         $this->assertInstanceOf(StreamInterface::class, $body);
         $this->assertSame('string content', (string) $body);
@@ -81,7 +66,7 @@ final class ResponseBuilderTraitTest extends TestCase
         $root = vfsStream::setup('root');
         $file = vfsStream::newFile('resource.txt')->at($root)->setContent('resource content');
         
-        $body = $this->instance->createStream(fopen($file->url(), 'rb'));
+        $body = $this->responseBuilder->createStream(fopen($file->url(), 'rb'));
 
         $this->assertInstanceOf(StreamInterface::class, $body);
         $this->assertSame('resource content', (string) $body);
@@ -91,12 +76,12 @@ final class ResponseBuilderTraitTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        $this->instance->createStream(42); // Not string or resource
+        $this->responseBuilder->createStream(42); // Not string or resource
     }
 
     public function testJsonResponse(): void
     {
-        $response = $this->instance->jsonResponse(['jsonResponse' => true]);
+        $response = $this->responseBuilder->jsonResponse(['jsonResponse' => true]);
 
         $this->assertSame('{"jsonResponse":true}', (string) $response->getBody());
         $this->assertSame(['application/json'], $response->getHeader('Content-Type'));
@@ -106,12 +91,12 @@ final class ResponseBuilderTraitTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
 
-        $this->instance->jsonResponse(tmpfile()); // Not serializable
+        $this->responseBuilder->jsonResponse(tmpfile()); // Not serializable
     }
 
     public function testHtmlResponse(): void
     {
-        $response = $this->instance->htmlResponse('<h1>html response</h1>');
+        $response = $this->responseBuilder->htmlResponse('<h1>html response</h1>');
 
         $this->assertSame(['text/html'], $response->getHeader('Content-Type'));
         $this->assertSame('<h1>html response</h1>', (string) $response->getBody());
@@ -119,7 +104,7 @@ final class ResponseBuilderTraitTest extends TestCase
 
     public function testTextResponse(): void
     {
-        $response = $this->instance->textResponse("text response");
+        $response = $this->responseBuilder->textResponse("text response");
 
         $this->assertSame(['text/plain'], $response->getHeader('Content-Type'));
         $this->assertSame('text response', (string) $response->getBody());
@@ -127,7 +112,7 @@ final class ResponseBuilderTraitTest extends TestCase
 
     public function testXmlResponse(): void
     {
-        $response = $this->instance->xmlResponse('<xml>xml response</xml>');
+        $response = $this->responseBuilder->xmlResponse('<xml>xml response</xml>');
 
         $this->assertSame(['application/xml'], $response->getHeader('Content-Type'));
         $this->assertSame('<xml>xml response</xml>', (string) $response->getBody());
@@ -135,7 +120,7 @@ final class ResponseBuilderTraitTest extends TestCase
 
     public function testEmptyResponse(): void
     {
-        $response = $this->instance->emptyResponse(204);
+        $response = $this->responseBuilder->emptyResponse(204);
 
         $this->assertSame(204, $response->getStatusCode());
         $this->assertSame('', (string) $response->getBody());
@@ -146,7 +131,7 @@ final class ResponseBuilderTraitTest extends TestCase
         $root = vfsStream::setup('root');
         $file = vfsStream::newFile('example.txt')->at($root)->setContent('file content');
         
-        $response = $this->instance->fileResponse($file->url());
+        $response = $this->responseBuilder->fileResponse($file->url());
         
         $this->assertSame('file content', (string) $response->getBody());
         $this->assertSame(['attachment; filename="example.txt"; filename*=UTF-8\'\'example.txt'], $response->getHeader('Content-Disposition'));
@@ -158,7 +143,7 @@ final class ResponseBuilderTraitTest extends TestCase
         $root = vfsStream::setup('root');
         $file = vfsStream::newFile('inline.txt')->at($root)->setContent('inline content');
 
-        $response = $this->instance->fileResponse($file->url(), disposition: 'inline');
+        $response = $this->responseBuilder->fileResponse($file->url(), disposition: 'inline');
 
         $this->assertSame('inline content', (string) $response->getBody());
         $this->assertSame(['inline; filename="inline.txt"; filename*=UTF-8\'\'inline.txt'], $response->getHeader('Content-Disposition'));
@@ -167,7 +152,7 @@ final class ResponseBuilderTraitTest extends TestCase
     }
     public function testRedirectResponse(): void
     {
-        $response = $this->instance->redirectResponse('/redirect/url', 302);
+        $response = $this->responseBuilder->redirectResponse('/redirect/url', 302);
 
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame(['/redirect/url'], $response->getHeader('Location'));
@@ -177,6 +162,6 @@ final class ResponseBuilderTraitTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        $this->instance->redirectResponse('/invalid', 418); // Invalid status for redirect
+        $this->responseBuilder->redirectResponse('/invalid', 418); // Invalid status for redirect
     }
 }
