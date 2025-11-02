@@ -19,7 +19,7 @@ use function is_string;
 use function sprintf;
 
 /**
- * Implementation of {@see DispatcherInterface}.
+ * Implementation of {@see Zenigata\Http\Middleware\DispatcherInterface}.
  * 
  * A PSR-15 compatible middleware dispatcher that processes middleware sequentially, 
  * allowing a final handler as a fallback if no middleware handles the request.

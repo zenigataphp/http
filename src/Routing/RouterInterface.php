@@ -9,9 +9,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 /**
  * Defines a contract for a PSR-15 compatible HTTP router.
  *
- * A router is responsible for registering routes or groups of routes,
- * dispatching incoming requests to the correct route handler,
- * and acting as a PSR-15 middleware in the request pipeline.
+ * Provides methods to register, retrieve, and handle route definitions,
+ * resolving them into executable request handlers at runtime.
  */
 interface RouterInterface extends RequestHandlerInterface
 {

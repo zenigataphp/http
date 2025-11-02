@@ -7,7 +7,7 @@ namespace Zenigata\Http\Error\Formatter;
 use Throwable;
 
 /**
- * Base class for {@see FormatterInterface} implementations.
+ * Base class for {@see Zenigata\Http\Error\Formatter\FormatterInterface} implementations.
  *
  * It provides a standard framework for formatters
  * to define the supported content types.

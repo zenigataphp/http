@@ -21,7 +21,7 @@ use function method_exists;
 use function sprintf;
 
 /**
- * Implementation of {@see HandlerResolverInterface}.
+ * Implementation of {@see Zenigata\Http\Handler\HandlerResolverInterface}.
  * 
  * Resolves route handler definitions into a PSR-15 request handler.
  *

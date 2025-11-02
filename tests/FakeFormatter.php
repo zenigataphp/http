@@ -8,7 +8,7 @@ use Throwable;
 use Zenigata\Http\Error\Formatter\AbstractFormatter;
 
 /**
- * Fake implementation of {@see AbstractFormatter}.
+ * Fake implementation of {@see Zenigata\Http\Error\Formatter\FormatterInterface}.
  *
  * Allows injecting custom content types and a formatter callback.
  */

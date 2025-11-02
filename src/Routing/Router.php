@@ -23,6 +23,15 @@ use function is_string;
 use function sprintf;
 use function FastRoute\cachedDispatcher;
 
+/**
+ * Implementation of {@see Zenigata\Http\Routing\RouterInterface}.
+ * 
+ * Provides a PSR-15 compatible routing engine that matches incoming requests
+ * to registered routes, resolves handlers, and dispatches middleware.
+ * 
+ * Internally relies on {@see FastRoute\Dispatcher}
+ * to match requests to routes.
+ */
 class Router implements RouterInterface
 {
     /**
@@ -48,7 +57,7 @@ class Router implements RouterInterface
     private ?FastRoute $router = null;
 
     /**
-     * Indicates if the routes are flattened to an array of {@see RouteInterface}.
+     * Indicates if the routes are resolved to an array of route instances.
      *
      * @var bool
      */
@@ -60,7 +69,7 @@ class Router implements RouterInterface
      * @param RouteInterface[]|GroupInterface[]|string[] $routes        Initial routes (optional).
      * @param ContainerInterface|null                    $container     Optional PSR-11 container for resolving services.
      * @param HandlerResolverInterface|null              $resolver      PSR-15 handler resolver.
-     * @param string                                     $attributeName Request attribute name for {@see RouteMatch}.
+     * @param string                                     $attributeName Request attribute name to access route metadata.
      * @param bool                                       $enableCache   Enable FastRoute caching.
      * @param string|null                                $cacheFile     FastRoute cache file path.
      */
@@ -139,7 +148,7 @@ class Router implements RouterInterface
     }
 
     /**
-     * Lazily builds and returns a FastRoute instance using {@see cachedDispatcher},
+     * Lazily builds and returns a FastRoute instance using {@see FastRoute\cachedDispatcher()},
      * which compiles all routes into an optimized routing table.
      */
     private function router(): FastRoute
@@ -165,7 +174,7 @@ class Router implements RouterInterface
 
     /**
      * Flattens all registered routes and groups into a single array
-     * of {@see RouteInterface} instances.
+     * of {@see Zenigata\Http\Routing\RouteInterface} instances.
      */
     private function resolveRoutes(): void
     {

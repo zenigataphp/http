@@ -8,7 +8,7 @@ use function rtrim;
 use function strtoupper;
 
 /**
- * Implementation of {@see RouteInterface}.
+ * Implementation of {@see Zenigata\Http\Routing\RouteInterface}.
  * 
  * Represents a single HTTP route with its method, path, handler,
  * and optional middleware stack.

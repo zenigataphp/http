@@ -16,7 +16,7 @@ use Throwable;
 interface FormatterInterface
 {
     /**
-     * Converts the given {@see Throwable} into a formatted string representation.
+     * Converts the given error into a formatted string representation.
      *
      * @param Throwable $error The error or exception to be formatted.
      * @param bool      $debug Indicates whether to include error details in the response.

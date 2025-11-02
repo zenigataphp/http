@@ -7,7 +7,7 @@ namespace Zenigata\Http\Test;
 use Zenigata\Http\Response\Emitter;
 
 /**
- * Test double for {@see Emitter}.
+ * Test double for {@see Zenigata\Http\Response\Emitter}.
  * 
  * Records emitted headers and simulates environment state.
  */

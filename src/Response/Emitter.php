@@ -19,7 +19,7 @@ use function strlen;
 use function strtolower;
 
 /**
- * Implementation of {@see EmitterInterface}.
+ * Implementation of {@see Zenigata\Http\Response\EmitterInterface}.
  *
  * Emits a PSR-7 response to the current SAPI environment using streaming,
  * minimizing memory usage and handling large payloads gracefully.

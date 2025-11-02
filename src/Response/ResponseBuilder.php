@@ -38,7 +38,7 @@ class ResponseBuilder
      *
      * @var int[]
      */
-    private const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
+    private const REDIRECT_CODES = [301, 302, 303, 307, 308];
     
     /**
      * Factory used to generate PSR-7 responses.
@@ -213,11 +213,11 @@ class ResponseBuilder
      */
     public function redirectResponse(string $location, int $status = 302, array $headers = []): ResponseInterface
     {
-        if (!in_array($status, self::REDIRECT_STATUS_CODES, true)) {
+        if (!in_array($status, self::REDIRECT_CODES, true)) {
             throw new InvalidArgumentException(sprintf(
                 'Invalid redirect status code: %s. Allowed values are: %s.',
                 $status,
-                implode(',', self::REDIRECT_STATUS_CODES)
+                implode(',', self::REDIRECT_CODES)
             ));
         }
 

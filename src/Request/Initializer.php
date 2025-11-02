@@ -13,14 +13,13 @@ use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 
 /**
- * Implementation of {@see InitializerInterface}.
+ * Implementation of {@see Zenigata\Http\Request\InitializerInterface}.
  *
  * Prepares the initial server request required to begin request handling
  * and provides a fallback response if initialization fails.
  * 
- * Internally relies on `nyholm/psr7-server` to build the server request.
- * 
- * @link https://github.com/Nyholm/psr7-server
+ * Internally relies on {@see Nyholm\Psr7Server\ServerRequestCreator}
+ * to build the server request.
  */
 class Initializer implements InitializerInterface
 {

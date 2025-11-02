@@ -10,7 +10,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use function array_values;
 
 /**
- * Default implementation of {@see HandlerInvokerInterface}.
+ * Default implementation of {@see Zenigata\Http\Handler\HandlerInvokerInterface}.
  *
  * Invokes the callable request handler with the request
  * and optional route parameters.

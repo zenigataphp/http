@@ -15,7 +15,7 @@ use Zenigata\Http\Routing\RouteInterface;
 use Zenigata\Http\Routing\Router;
 
 /**
- * Middleware wrapping the {@see Router} handler.
+ * Middleware wrapping the {@see Zenigata\Http\Routing\Router} handler.
  *
  * Matches incoming requests against the registered routing table
  * and delegates execution to the resolved route handler.
@@ -35,7 +35,7 @@ class RouterMiddleware implements MiddlewareInterface
      * @param RouteInterface[]|GroupInterface[]|string[] $routes        Initial routes (optional).
      * @param ContainerInterface|null                    $container     Optional PSR-11 container for resolving services.
      * @param HandlerResolverInterface|null              $resolver      PSR-15 handler resolver.
-     * @param string                                     $attributeName Request attribute name for {@see RouteMatch}.
+     * @param string                                     $attributeName Request attribute name to access route metadata.
      * @param bool                                       $enableCache   Enable FastRoute caching.
      * @param string|null                                $cacheFile     FastRoute cache file path.
      */

@@ -10,7 +10,7 @@ use function array_merge;
 use function rtrim;
 
 /**
- * Implementation of {@see GroupInterface}.
+ * Implementation of {@see Zenigata\Http\Routing\GroupInterface}.
  *
  * Represents a collection of routes sharing a common path prefix
  * and optional middleware stack.

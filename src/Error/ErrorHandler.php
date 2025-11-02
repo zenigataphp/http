@@ -21,7 +21,7 @@ use function sprintf;
 use function str_contains;
 
 /**
- * Implementation of {@see ErrorHandlerInterface}.
+ * Implementation of {@see Zenigata\Framework\ErrorHandling\ErrorHandlerInterface}.
  *
  * Translates exceptions into PSR-7 responses using registered formatter instances.
  * Supports configurable logging, debug mode, and automatic content negotiation.

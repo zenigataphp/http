@@ -16,7 +16,7 @@ use Zenigata\Http\Response\Emitter;
 use Zenigata\Http\Response\EmitterInterface;
 
 /**
- * Implementation of {@see HttpRunnerInterface}.
+ * Implementation of {@see Zenigata\Http\HttpRunnerInterface}.
  *
  * The runner composes a middleware dispatcher, a server request initializer, 
  * and a response emitter to handle the full PSR-15 HTTP lifecycle.
