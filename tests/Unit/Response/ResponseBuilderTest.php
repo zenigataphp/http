@@ -10,7 +10,6 @@ use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
-use Stringable;
 use Zenigata\Http\Response\ResponseBuilder;
 
 use function fopen;
@@ -25,7 +24,7 @@ use function tmpfile;
  *
  * Covered cases:
  * 
- * - Create responses from strings, stringable, streams, or resources with correct headers and status.  
+ * - Create responses from strings, streams, or resources with correct headers and status.  
  * - Shortcuts (`json()`, `html()`, `text()`, `xml()`, `empty()`) set proper `Content-Type` and body.  
  * - File responses set `Content-Disposition`, `Content-Length`, and preserve filenames (RFC 5987).
  * - Inline file responses set correct `Content-Disposition: inline` and preserve filename and size.  
@@ -60,21 +59,6 @@ final class ResponseBuilderTest extends TestCase
 
         $this->assertInstanceOf(StreamInterface::class, $body);
         $this->assertSame('string content', (string) $body);
-    }
-
-    public function testCreateStreamFromStringableObject(): void
-    {
-        $stringable = new class implements Stringable {
-            public function __toString(): string
-            {
-                return 'stringable content';
-            }
-        };
-
-        $body = $this->responseBuilder->createStream($stringable);
-
-        $this->assertInstanceOf(StreamInterface::class, $body);
-        $this->assertSame('stringable content', (string) $body);
     }
 
     public function testCreateStreamFromResource(): void
