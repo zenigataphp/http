@@ -6,6 +6,7 @@ namespace Zenigata\Http\Response;
 
 use InvalidArgumentException;
 use RuntimeException;
+use Stringable;
 use Middlewares\Utils\Factory;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -71,9 +72,9 @@ class ResponseBuilder
     /**
      * Creates a new PSR-7 response.
      *
-     * @param int                                  $status  HTTP status code.
-     * @param StreamInterface|string|resource|null $body    The response body.
-     * @param array<string,string>                 $headers Additional response headers.
+     * @param int                                             $status  HTTP status code.
+     * @param StreamInterface|Stringable|string|resource|null $body    The response body.
+     * @param array<string,string>                            $headers Additional response headers.
      * 
      * @return ResponseInterface The generated PSR-7 response.
      */
@@ -95,7 +96,7 @@ class ResponseBuilder
     /**
      * Creates a new PSR-7 stream.
      *
-     * @param StreamInterface|string|resource $body The body content as a string, resource, or PSR-7 stream.
+     * @param StreamInterface|Stringable|string|resource $body The body content.
      * 
      * @return StreamInterface The generated PSR-7 stream.
      * @throws InvalidArgumentException If the body type is not a valid.
@@ -107,9 +108,10 @@ class ResponseBuilder
         }
 
         return match (true) {
-            is_string($body)   => $this->streamFactory->createStream($body),
-            is_resource($body) => $this->streamFactory->createStreamFromResource($body),
-            default            => throw new InvalidArgumentException(sprintf(
+            $body instanceof Stringable => $this->streamFactory->createStream((string) $body),
+            is_string($body)            => $this->streamFactory->createStream($body),
+            is_resource($body)          => $this->streamFactory->createStreamFromResource($body),
+            default                     => throw new InvalidArgumentException(sprintf(
                 "Invalid stream body type. Expected string or resource, got '%s'",
                 get_debug_type($body)
             ))
@@ -153,13 +155,13 @@ class ResponseBuilder
     /**
      * Creates an HTML response.
      *
-     * @param string               $html    HTML string.
+     * @param string|Stringable    $html    HTML string, or stringable object.
      * @param int                  $status  HTTP status code.
      * @param array<string,string> $headers Additional headers.
      *
      * @return ResponseInterface The generated PSR-7 response.
      */
-    public function htmlResponse(string $html, int $status = 200, array $headers = []): ResponseInterface
+    public function htmlResponse(string|Stringable $html, int $status = 200, array $headers = []): ResponseInterface
     {
         $headers['Content-Type'] = ['text/html'];
         $body = $this->createStream($html);
@@ -170,13 +172,13 @@ class ResponseBuilder
     /** 
      * Creates a plain text response.
      *
-     * @param string               $text    Text string.
+     * @param string|Stringable    $text    Text string, or stringable object.
      * @param int                  $status  HTTP status code.
      * @param array<string,string> $headers Additional headers.
      *
      * @return ResponseInterface The generated PSR-7 response.
      */
-    public function textResponse(string $text, int $status = 200, array $headers = []): ResponseInterface
+    public function textResponse(string|Stringable $text, int $status = 200, array $headers = []): ResponseInterface
     {
         $headers['Content-Type'] = ['text/plain'];
         $body = $this->createStream($text);
@@ -187,13 +189,13 @@ class ResponseBuilder
     /** 
      * Creates an XML response.
      *
-     * @param string               $xml     XML string.
+     * @param string|Stringable    $xml     XML string, or stringable object.
      * @param int                  $status  HTTP status code.
      * @param array<string,string> $headers Additional headers.
      *
      * @return ResponseInterface The generated PSR-7 response.
      */
-    public function xmlResponse(string $xml, int $status = 200, array $headers = []): ResponseInterface
+    public function xmlResponse(string|Stringable $xml, int $status = 200, array $headers = []): ResponseInterface
     {
         $headers['Content-Type'] = ['application/xml'];
         $body = $this->createStream($xml);

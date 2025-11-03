@@ -6,6 +6,7 @@ namespace Zenigata\Http\Response;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use Stringable;
 
 /**
  * Utility trait for building responses in various formats.
@@ -62,7 +63,7 @@ trait ResponseBuilderTrait
     /**
      * @see Zenigata\Http\Response\ResponseBuilder::htmlResponse()
      */
-    protected function htmlResponse(string $html, int $status = 200, array $headers = []): ResponseInterface
+    protected function htmlResponse(string|Stringable $html, int $status = 200, array $headers = []): ResponseInterface
     {
         return $this->responseBuilder()->htmlResponse($html, $status, $headers);
     }
@@ -70,7 +71,7 @@ trait ResponseBuilderTrait
     /** 
      * @see Zenigata\Http\Response\ResponseBuilder::textResponse()
      */
-    protected function textResponse(string $text, int $status = 200, array $headers = []): ResponseInterface
+    protected function textResponse(string|Stringable $text, int $status = 200, array $headers = []): ResponseInterface
     {
         return $this->responseBuilder()->textResponse($text, $status, $headers);
     }
@@ -78,7 +79,7 @@ trait ResponseBuilderTrait
     /** 
      * @see Zenigata\Http\Response\ResponseBuilder::xmlResponse()
      */
-    protected function xmlResponse(string $xml, int $status = 200, array $headers = []): ResponseInterface
+    protected function xmlResponse(string|Stringable $xml, int $status = 200, array $headers = []): ResponseInterface
     {
         return $this->responseBuilder()->xmlResponse($xml, $status, $headers);
     }
