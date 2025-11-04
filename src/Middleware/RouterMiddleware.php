@@ -32,15 +32,15 @@ class RouterMiddleware implements MiddlewareInterface
     /**
      * Creates a new router middleware instance. 
      * 
-     * @param RouteInterface[]|GroupInterface[]|string[] $routes        Initial routes (optional).
-     * @param ContainerInterface|null                    $container     Optional PSR-11 container for resolving services.
-     * @param HandlerResolverInterface|null              $resolver      PSR-15 handler resolver.
-     * @param string                                     $attributeName Request attribute name to access route metadata.
-     * @param bool                                       $enableCache   Enable FastRoute caching.
-     * @param string|null                                $cacheFile     FastRoute cache file path.
+     * @param iterable<RouteInterface|GroupInterface|string> $routes        Initial routes (optional).
+     * @param ContainerInterface|null                        $container     Optional PSR-11 container for resolving services.
+     * @param HandlerResolverInterface|null                  $resolver      PSR-15 handler resolver.
+     * @param string                                         $attributeName Request attribute name to access route metadata.
+     * @param bool                                           $enableCache   Enable FastRoute caching.
+     * @param string|null                                    $cacheFile     FastRoute cache file path.
      */
     public function __construct(
-        array $routes = [],
+        iterable $routes = [],
         ?ContainerInterface $container = null,
         ?HandlerResolverInterface $resolver = null,
         string $attributeName = 'route',

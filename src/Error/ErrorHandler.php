@@ -45,12 +45,12 @@ class ErrorHandler implements ErrorHandlerInterface
     /**
      * Creates a new error handler instance.
      *
-     * @param FormatterInterface[]          $formatters      List of formatters used to serialize error responses.
+     * @param iterable<FormatterInterface>  $formatters      List of formatters used to serialize error responses.
      * @param LoggerInterface|null          $logger          Optional PSR-3 logger for recording exceptions and request context.
      * @param ResponseFactoryInterface|null $responseFactory Optional factory to create PSR-7 response instances.
      */
     public function __construct(
-        array $formatters = [],
+        iterable $formatters = [],
         private ?LoggerInterface $logger = null,
         ?ResponseFactoryInterface $responseFactory = null,
     ) {

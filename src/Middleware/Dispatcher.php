@@ -29,12 +29,12 @@ class Dispatcher implements DispatcherInterface
     /**
      * Creates a new middleware dispatcher instance.
      * 
-     * @param MiddlewareInterface[]|string[] $middleware Initial middleware stack.
-     * @param RequestHandlerInterface|null   $handler    Final handler executed after all middleware.
-     * @param ContainerInterface|null        $container  Optional PSR-11 container for resolving service IDs.
+     * @param iterable<MiddlewareInterface|string> $middleware Initial middleware stack.
+     * @param RequestHandlerInterface|null         $handler    Final handler executed after all middleware.
+     * @param ContainerInterface|null              $container  Optional PSR-11 container for resolving service IDs.
      */
     public function __construct(
-        private array $middleware = [],
+        private iterable $middleware = [],
         private ?RequestHandlerInterface $handler = null,
         private ?ContainerInterface $container = null,
     ) {}

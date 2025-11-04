@@ -66,15 +66,15 @@ class Router implements RouterInterface
     /**
      * Creates a new router instance. 
      * 
-     * @param RouteInterface[]|GroupInterface[]|string[] $routes        Initial routes (optional).
-     * @param ContainerInterface|null                    $container     Optional PSR-11 container for resolving services.
-     * @param HandlerResolverInterface|null              $resolver      PSR-15 handler resolver.
-     * @param string                                     $attributeName Request attribute name to access route metadata.
-     * @param bool                                       $enableCache   Enable FastRoute caching.
-     * @param string|null                                $cacheFile     FastRoute cache file path.
+     * @param iterable<RouteInterface|GroupInterface|string> $routes        Initial routes (optional).
+     * @param ContainerInterface|null                        $container     Optional PSR-11 container for resolving services.
+     * @param HandlerResolverInterface|null                  $resolver      PSR-15 handler resolver.
+     * @param string                                         $attributeName Request attribute name to access route metadata.
+     * @param bool                                           $enableCache   Enable FastRoute caching.
+     * @param string|null                                    $cacheFile     FastRoute cache file path.
      */
     public function __construct(
-        private array $routes = [],
+        private iterable $routes = [],
         private ?ContainerInterface $container = null,
         private ?HandlerResolverInterface $resolver = null,
         private string $attributeName = 'route',
