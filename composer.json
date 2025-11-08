@@ -43,6 +43,10 @@
         ]
     },
     "suggest": {
-        "nyholm/psr7": "Lightweight PSR-7 and PSR-17 implementations."
+        "guzzlehttp/psr7": "PSR-7 and PSR-17 message implementation.",
+        "laminas/laminas-diactoros": "PSR-7 and PSR-17 message implementation.",
+        "nyholm/psr7": "Lightweight PSR-7 and PSR-17 implementation.",
+        "slim/psr7": "Slim Framework PSR-7 implementation.",
+        "sunrise/http-message": "Lightweight PSR-7 message implementation."
     }
 }
