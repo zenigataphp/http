@@ -141,14 +141,21 @@ use Zenigata\Http\Routing\Router;
 // Example with PHP-DI
 $container = new Container();
 
-$container->set(JsonPayloadMiddleware::class, fn() => new JsonPayloadMiddleware());
-$container->set(UrlEncodePayloadMiddleware::class, fn() => new UrlEncodePayloadMiddleware());
+$container->set(JsonPayloadMiddleware::class, new JsonPayloadMiddleware());
+$container->set(UrlEncodePayloadMiddleware::class, new UrlEncodePayloadMiddleware());
 
-$container->set('routes', function (ContainerInterface $c) {
+$container->set('routes', function () {
     return [
         Route::get('/', HomeHandler::class),
         Route::get('/hello/{name}', HelloHandler::class),
     ];
+});
+
+$container->set(Router::class, function (ContainerInterface $container) {
+    return new Router(
+        routes:    $container->get('routes'),
+        container: $container
+    );
 });
 
 $dispatcher = new Dispatcher(
@@ -156,10 +163,7 @@ $dispatcher = new Dispatcher(
         JsonPayloadMiddleware::class,
         UrlEncodePayloadMiddleware::class,
     ],
-    handler: new Router(
-        routes:    $container->get('routes'),
-        container: $container
-    ),
+    handler:   Router::class,
     container: $container
 );
 
