@@ -1,19 +1,12 @@
 # Zenigata HTTP
 
-A lightweight, PSR-15 compliant HTTP runner and middleware framework built for composability and simplicity.
+> ⚠️ This project is in an early development stage. Feedback and contributions are welcome!
 
-**Zenigata HTTP** provides a clean abstraction for handling the full HTTP lifecycle: request initialization, middleware dispatching, routing, and response emission.
+Lightweight, PSR-15 compliant HTTP runner and middleware framework built for composability and simplicity.
 
-Zenigata HTTP draws inspiration from the modern PHP interoperability standards (PSR-7, PSR-15, PSR-17) and aims to provide a cohesive, framework-neutral HTTP kernel for PHP developers.
+**Zenigata HTTP** provides a clean abstraction for handling the **full HTTP lifecycle**: **request initialization**, **middleware dispatching**, **routing**, and **response emission**, while offering a **modular architecture** that allows you to freely combine components, and being fully **Dependency Injection friendly**
 
-## Features
-
-- **PSR-7 / PSR-15 compatible**  
-- **Modular architecture**: combine runners, routers, and middleware freely  
-- **Dependency Injection friendly**: supports PSR-11 containers
-- **Built-in FastRoute integration**: for efficient routing  
-- **Centralized error handling**: customizable `ErrorHandlerInterface`  
-- **Debug mode**: for detailed exception responses  
+Zenigata HTTP draws inspiration from the modern PHP [interoperability standards](https://www.php-fig.org/psr/) and aims to provide a cohesive, framework-agnostic HTTP kernel for PHP developers.
 
 ## Requirements
 
@@ -41,9 +34,55 @@ It orchestrates the PSR-15 HTTP flow by combining:
 - A `RequestHandlerInterface` (e.g. a `Router` or `Dispatcher`)
 - A Request Initializer
 - A Response Emitter
-- An optional Error Handler
+- An Error Handler
 
-You can think of it as the "engine" that runs your HTTP application.
+Think of it as the "engine" that runs your HTTP application.
+
+Other key components are:
+
+[`Router`](./src/Routing/Router.php)
+
+- PSR-15 compatible handler built on top of on [FastRoute](https://github.com/nikic/FastRoute).
+- Supports **route groups**, **middleware stacks**, and **container-based resolution**.
+- Uses a [`HandlerResolver`](./src/Handler/HandlerResolver.php) to convert route definitions into executable PSR-15 handlers.
+- By default, accepts the following handler types:
+  - **String identifiers**, resolved via container or reflection.
+  - **Callables**, with signature `function(ServerRequestInterface $request): ResponseInterface`.
+  - **[Class, method]** controller pairs
+  - **Instances** of `RequestHandlerInterface`
+- The internal [`HandlerInvoker`](./src/Handler/HandlerInvoker.php) supports two invocation modes:
+  - **Named arguments** — default
+  - **Positional arguments** — enabled via constructor flag
+
+[`Dispatcher`](./src/Middleware/Dispatcher.php)
+
+- A PSR-15 compatible middleware dispatcher.
+- Executes middleware **sequentially**, passing the request through each layer until it reaches the **final handler**.
+- If no final handler is provided it throws an `HttpError` with status code **404 (Not Found)**.
+
+[`RouterMiddleware`](./src/Middleware/RouterMiddleware.php)
+
+- Middleware wrapper for the `Router`.
+- Allows routing to be part of a larger middleware stack.
+
+[`ResponseBuilder`](./src/Response/ResponseBuilder.php)
+
+- Automatically detect PSR-17 factories using the `Factory` utility from [`middleware/utils`](https://github.com/middlewares/utils?tab=readme-ov-file#factory).
+- Provides convenience methods to build PSR-7 `ResponseInterface` instances (e.g. `jsonResponse`, `htmlResponse`, `fileResponse`, etc).
+- Can be reused through the [`ResponseBuilderTrait`](./src/Response/ResponseBuilderTrait.php) to share response-building logic across handlers.
+
+[`ErrorHandler`](./src/Error/ErrorHandler.php)
+
+- Optionally accepts a `Psr\Log\LoggerInterface` to log thrown exceptions.
+- Supports custom **error formatters** to convert exceptions into response bodies.
+- When `debug` mode is enabled, the response will include **stack trace** and **exception details**.
+
+[`HttpError`](./src/Error/HttpError.php)
+
+- Represents an **HTTP-specific exception** that maps directly to a **status code**.
+- Validates that the code is within the **4xx–5xx** range.
+- Automatically assigns the standard **reason phrase** if no message is provided.  
+- Stores the original `ServerRequestInterface` that triggered the error, accessible via `getRequest()`.  
 
 ## Usage
 
@@ -93,9 +132,9 @@ $runner = new HttpRunner($dispatcher);
 $runner->run();
 ```
 
-The `Dispatcher` executes middleware in registration order, each having the opportunity to process or modify the request and response before passing control to the next one.
+The `Dispatcher` executes middleware in **registration order** ([FIFO](https://en.wikipedia.org/wiki/FIFO_(computing_and_electronics))), each having the opportunity to process or modify the request and response before passing control to the next one.
 
-Once all middleware are processed, the final handler (in this case, the `Router`) handles the request and produces a response.
+Once all middleware are processed, the **final handler handles the request** and produces a response (in this case, the `Router`).
 
 ### Example 3 — Using the Router as Middleware
 
@@ -121,8 +160,8 @@ $runner = new HttpRunner($dispatcher);
 $runner->run();
 ```
 
-The `RouterMiddleware` behaves exactly like the `Router`, but can be placed anywhere within a middleware stack.
-It supports the same constructor arguments and methods as the `Router`, including route registration, container-based resolution, and caching.
+The `RouterMiddleware` behaves exactly like the `Router`, but can be placed **anywhere** within a middleware stack.
+It supports the same constructor arguments and methods as the `Router`, including **route registration**, **container-based resolution**, and **caching**.
 
 ### Example 4 — Using a PSR-11 Container
 
@@ -171,8 +210,8 @@ $runner = new HttpRunner($dispatcher);
 $runner->run();
 ```
 
-When a middleware or route handler is declared as a string (class name or service identifier), the dispatcher and router will ask the container to resolve it.
-If the container does not contain the entry, Zenigata HTTP falls back to reflection-based instantiation via `ReflectionHelper`. This mechanism only works for classes that have no required constructor dependencies.
+When a middleware or handler is declared as a **string (class name or service identifier)**, the dispatcher and router will ask the **container** to resolve it.
+If the container does not contain the entry, Zenigata HTTP falls back to **reflection-based instantiation** via `ReflectionHelper`. This mechanism only works for classes that have **no required constructor dependencies**.
 
 This approach allows **lazy loading**, **dependency injection**, and **testability** while keeping middleware configuration declarative.
 
@@ -180,13 +219,13 @@ This approach allows **lazy loading**, **dependency injection**, and **testabili
 
 The runner delegates any uncaught exception or error to an `ErrorHandlerInterface`, which must return a valid `ResponseInterface`.
 
-If no error handler is explicitly provided, a default [`ErrorHandler`](./src/Error/ErrorHandler.php) instance is automatically created. This default handler can optionally receive a `Psr\Log\LoggerInterface` and one or more custom error formatters.
+If no error handler is explicitly provided, a default [`ErrorHandler`](./src/Error/ErrorHandler.php) instance is **automatically created**.
 
 ```php
 $runner = new HttpRunner($router, debug: true);
 ```
 
-When `debug` mode is enabled, the default error handler will include detailed exception information (stack traces, messages, etc.) in the response body, useful for development and testing.
+When `debug` mode is enabled, the default error handler will include **detailed exception information** (stack traces, messages, etc.) in the response body, useful for development and testing.
 
 You can provide your own implementation by passing it to the constructor:
 
