@@ -22,7 +22,7 @@ use function array_shift;
  * Covered cases:
  *
  * - Run middleware in order, then the request handler.  
- * - Resolve middleware from a PSR-11 container when referenced by service ID.  
+ * - Resolve handlers from a PSR-11 container when referenced by service ID.  
  * - Wrap and execute callable middleware as PSR-15.
  */
 #[CoversClass(Dispatcher::class)]
@@ -72,14 +72,15 @@ final class DispatcherTest extends TestCase
         };
 
         $container = new FakeContainer([
-            'fake.middleware' => new FakeMiddleware(callable: $callback)
+            'fake.middleware' => new FakeMiddleware(callable: $callback),
+            'fake.handler'    => new FakeRequestHandler($this->response, $callback),
         ]);
 
         $dispatcher = new Dispatcher(
             middleware: [
                 'fake.middleware'
             ], 
-            handler:   new FakeRequestHandler($this->response, $callback),
+            handler:   'fake.handler',
             container: $container
         );
 

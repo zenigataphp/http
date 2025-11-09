@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Zenigata\Http\Middleware;
 
 use InvalidArgumentException;
-use LogicException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -30,12 +29,12 @@ class Dispatcher implements DispatcherInterface
      * Creates a new middleware dispatcher instance.
      * 
      * @param iterable<MiddlewareInterface|string> $middleware Initial middleware stack.
-     * @param RequestHandlerInterface|null         $handler    Final handler executed after all middleware.
+     * @param RequestHandlerInterface|string|null  $handler    Final handler executed after all middleware.
      * @param ContainerInterface|null              $container  Optional PSR-11 container for resolving service IDs.
      */
     public function __construct(
         private iterable $middleware = [],
-        private ?RequestHandlerInterface $handler = null,
+        private RequestHandlerInterface|string|null $handler = null,
         private ?ContainerInterface $container = null,
     ) {}
 
@@ -45,11 +44,16 @@ class Dispatcher implements DispatcherInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $handler = $this->handler ?? $this->notFoundHandler();
+
+        if (is_string($handler)) {
+            $handler = $this->resolveHandler($handler);
+        }
+
         $middleware = array_reverse($this->middleware);
 
         foreach ($middleware as $middleware) {
             if (is_string($middleware)) {
-                $middleware = $this->resolveDefinition($middleware);
+                $middleware = $this->resolveMiddleware($middleware);
             }
 
             $handler = $this->wrapMiddleware($middleware, $handler);
@@ -67,30 +71,53 @@ class Dispatcher implements DispatcherInterface
     }
 
     /**
-     * Resolves a string definition into a middleware instance.
+     * Resolves a string definition from container or via reflection.
+     */
+    private function resolveDefinition(string $definition): object
+    {
+        if ($this->container !== null && $this->container->has($definition)) {
+            return $this->container->get($definition);
+        }
+
+        return ReflectionHelper::instantiate($definition);
+    }
+
+    /**
+     * Resolves a middleware definition into a middleware instance.
      * 
-     * @return MiddlewareInterface The resolved middleware instance.
-     * @throws LogicException If no container has been set.
      * @throws InvalidArgumentException If the middleware is missing or has the wrong type.
      */
-    private function resolveDefinition(string $middleware): MiddlewareInterface
+    private function resolveMiddleware(string $middleware): MiddlewareInterface
     {
-        $resolved = null;
-
-        if ($this->container !== null && $this->container->has($middleware)) {
-            $resolved = $this->container->get($middleware);
-        }
-
-        if ($resolved === null) {
-            $resolved = ReflectionHelper::instantiate($middleware);
-        }
+        $resolved = $this->resolveDefinition($middleware);
 
         if (!$resolved instanceof MiddlewareInterface) {
             throw new InvalidArgumentException(sprintf(
                 "Invalid type for '%s'. Expected [%s], got '%s'.",
                 $middleware,
                 MiddlewareInterface::class,
-                $middleware::class
+                $resolved::class
+            ));
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * Resolves a handler definition into an handler instance.
+     * 
+     * @throws InvalidArgumentException If the handler is missing or has the wrong type.
+     */
+    private function resolveHandler(string $handler): RequestHandlerInterface
+    {
+        $resolved = $this->resolveDefinition($handler);
+
+        if (!$resolved instanceof RequestHandlerInterface) {
+            throw new InvalidArgumentException(sprintf(
+                "Invalid type for '%s'. Expected [%s], got '%s'.",
+                $handler,
+                RequestHandlerInterface::class,
+                $resolved::class
             ));
         }
 
