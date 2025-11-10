@@ -89,7 +89,7 @@ Other key components are:
 ### Example 1 — Using the Router as the main handler
 
 ```php
-use Nyholm\Psr7\Response;
+use Laminas\Diactoros\Response\HtmlResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Zenigata\Http\HttpRunner;
@@ -98,10 +98,10 @@ use Zenigata\Http\Routing\Route;
 
 $router = new Router([
     Route::get('/', function (ServerRequestInterface $request): ResponseInterface {
-        return new Response(204);
+        return new HtmlResponse('Hello World');
     }),
     Route::get('/hello/{name}', function (ServerRequestInterface $request, string $name): ResponseInterface {
-        return new Response(200, body: "Hello {$name}");
+        return new HtmlResponse("Hello {$name}");
     }),
 ]);
 
