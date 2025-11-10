@@ -44,7 +44,7 @@ class Route implements RouteInterface
         private array $middleware = []
     ) {
         $this->method = strtoupper($method);
-        $this->path = rtrim($path, '/');
+        $this->path = '/' . trim($path, '/');
     }
 
     /**

@@ -47,7 +47,7 @@ class Group implements GroupInterface
      */
     public function __construct(string $prefix, array $routes = [], array $middleware = [])
     {
-        $this->prefix = rtrim($prefix, '/');
+        $this->prefix = '/' . trim($prefix, '/');
         $this->middleware = $middleware;
 
         foreach ($routes as $route) {
