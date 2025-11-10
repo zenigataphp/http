@@ -4,8 +4,8 @@ namespace Zenigata\Http\Routing;
 
 use Psr\Http\Server\MiddlewareInterface;
 
-use function rtrim;
 use function strtoupper;
+use function trim;
 
 /**
  * Implementation of {@see Zenigata\Http\Routing\RouteInterface}.
@@ -44,7 +44,7 @@ class Route implements RouteInterface
         private array $middleware = []
     ) {
         $this->method = strtoupper($method);
-        $this->path = rtrim($path, '/');
+        $this->path = '/' . trim($path, '/');
     }
 
     /**

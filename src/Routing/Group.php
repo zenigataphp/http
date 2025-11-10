@@ -7,7 +7,7 @@ namespace Zenigata\Http\Routing;
 use Psr\Http\Server\MiddlewareInterface;
 
 use function array_merge;
-use function rtrim;
+use function trim;
 
 /**
  * Implementation of {@see Zenigata\Http\Routing\GroupInterface}.
@@ -47,7 +47,7 @@ class Group implements GroupInterface
      */
     public function __construct(string $prefix, array $routes = [], array $middleware = [])
     {
-        $this->prefix = rtrim($prefix, '/');
+        $this->prefix = '/' . trim($prefix, '/');
         $this->middleware = $middleware;
 
         foreach ($routes as $route) {
