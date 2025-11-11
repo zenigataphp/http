@@ -65,7 +65,7 @@ class ResponseBuilder
         ?StreamFactoryInterface $streamFactory = null,
     ) {
         $this->responseFactory = $responseFactory ?? Factory::getResponseFactory();
-        $this->streamFactory = $streamFactory ?? Factory::getStreamFactory();
+        $this->streamFactory   = $streamFactory   ?? Factory::getStreamFactory();
     }
 
     /**

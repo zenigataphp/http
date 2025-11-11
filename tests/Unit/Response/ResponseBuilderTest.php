@@ -18,10 +18,6 @@ use function tmpfile;
 /**
  * Unit test for {@see ResponseBuilder}.
  *
- * Verifies that the response builder utility correctly creates various types of PSR-7
- * {@see ResponseInterface} instances from different inputs, handling headers, status codes,
- * and content formats.
- *
  * Covered cases:
  * 
  * - Create responses from strings, streams, or resources with correct headers and status.  
