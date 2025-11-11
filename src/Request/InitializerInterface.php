@@ -15,9 +15,21 @@ use Psr\Http\Message\ServerRequestInterface;
 interface InitializerInterface
 {
     /**
-     * Creates a server request instance from global PHP variables.
+     * Creates a ServerRequest from PHP globals or provided arrays.
      *
-     * @return ServerRequestInterface The initialized server request.
+     * @param array<string,mixed> $server Server parameters, usually $_SERVER.
+     * @param array<string,mixed> $get    Query parameters, usually $_GET.
+     * @param array<string,mixed> $post   Parsed body parameters, usually $_POST.
+     * @param array<string,mixed> $cookie Cookies, usually $_COOKIE.
+     * @param array<string,mixed> $files  Uploaded files, usually $_FILES.
+     * 
+     * @return ServerRequestInterface The fully initialized PSR-7 server request.
      */
-    public function createServerRequest(): ServerRequestInterface;
+    public function initialize(
+        ?array $server = null,
+        ?array $get    = null,
+        ?array $post   = null,
+        ?array $cookie = null,
+        ?array $files  = null,
+    ): ServerRequestInterface;
 }
