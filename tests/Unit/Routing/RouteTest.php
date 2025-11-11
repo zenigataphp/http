@@ -15,8 +15,8 @@ use Zenigata\Utility\Psr\FakeRequestHandler;
  *
  * Covered cases:
  *
- * - Create routes via static factories for standard HTTP methods, checking method, path, handler, middleware.
- * - Normalize paths by removing trailing slashes while keeping the leading slash.
+ * - Create routes via static factories for standard HTTP methods.
+ * - Normalize route paths to ensure a single leading slash and no trailing slashes.
  * - Create multiple routes at once with {@see Route::map()} and {@see Route::any()}.
  * - Group routes under a prefix and/or middleware via {@see Route::group()}, updating all routes accordingly.
  * - Accept {@see \Psr\Http\Server\RequestHandlerInterface} as a handler directly.
@@ -107,13 +107,13 @@ final class RouteTest extends TestCase
         $this->assertSame($handler, $route->getHandler());
     }
 
-    public function testConstructorStripsTrailingSlashOnly(): void
+    public function testNormalizesRoutePath(): void
     {
         $route = Route::get('/foo/bar///', 'handler');
         $this->assertSame('/foo/bar', $route->getPath());
 
         $route2 = Route::get('/', 'handler');
-        $this->assertSame('', $route2->getPath());
+        $this->assertSame('/', $route2->getPath());
     }
 
     public function testGroupWithEmptyPrefix(): void
