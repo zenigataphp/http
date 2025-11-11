@@ -58,8 +58,8 @@ final class HtmlFormatter extends AbstractFormatter
     <meta charset="utf-8">
     <title>{$this->title}</title>
     <style>
-        body { font-family: sans-serif; padding: 2rem; color: #333; }
-        pre  { background: #f8f8f8; padding: 1rem; border-radius: 6px; }
+        body { font-family: sans-serif; margin: 0; padding: 2rem; color: #333333; }
+        pre  { background: #f8f8f8; margin: 0; padding: 1rem; border-radius: 6px; }
     </style>
 </head>
 <body>
