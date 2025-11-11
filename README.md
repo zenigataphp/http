@@ -183,12 +183,10 @@ $container = new Container();
 $container->set(JsonPayloadMiddleware::class, new JsonPayloadMiddleware());
 $container->set(UrlEncodePayloadMiddleware::class, new UrlEncodePayloadMiddleware());
 
-$container->set('routes', function () {
-    return [
-        Route::get('/', HomeHandler::class),
-        Route::get('/hello/{name}', HelloHandler::class),
-    ];
-});
+$container->set('routes', [
+    Route::get('/', HomeHandler::class),
+    Route::get('/hello/{name}', HelloHandler::class),
+]);
 
 $container->set(Router::class, function (ContainerInterface $container) {
     return new Router(
