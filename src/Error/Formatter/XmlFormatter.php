@@ -52,6 +52,7 @@ XML;
     {
         $details = [
             '<type>%s</type>',
+            '<code>%s</code>',
             '<file>%s</file>',
             '<line>%d</line>',
             '<trace>%s</trace>',
@@ -60,6 +61,7 @@ XML;
         return sprintf(
             implode("\n", $details),
             $this->escape($error::class),
+            $error->getCode(),
             $this->escape($error->getFile()),
             $error->getLine(),
             $this->escape($error->getTraceAsString())

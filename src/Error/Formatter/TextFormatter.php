@@ -32,9 +32,10 @@ final class TextFormatter extends AbstractFormatter
         }
 
         return sprintf(
-            "Message: %s\nType: %s\nFile: %s\nLine: %d\n\nTrace:\n%s\n",
+            "Message: %s\nType: %s\nCode: %s\nFile: %s\nLine: %d\n\nTrace:\n%s\n",
             $error->getMessage(),
             $error::class,
+            $error->getCode(),
             $error->getFile(),
             $error->getLine(),
             $error->getTraceAsString()

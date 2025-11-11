@@ -40,6 +40,7 @@ final class JsonFormatter extends AbstractFormatter
         if ($debug === true) {
             $data['error'] += [
                 'type'  => $error::class,
+                'code'  => $error->getCode(),
                 'file'  => $error->getFile(),
                 'line'  => $error->getLine(),
                 'trace' => explode("\n", $error->getTraceAsString()),

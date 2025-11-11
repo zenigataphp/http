@@ -78,6 +78,7 @@ HTML;
     {
         $details = [
             '<p><strong>Type:</strong> %s</p>',
+            '<p><strong>Code:</strong> %s</p>',
             '<p><strong>File:</strong> %s</p>',
             '<p><strong>Line:</strong> %d</p>',
             '<h2>Trace</h2><pre>%s</pre>',
@@ -86,6 +87,7 @@ HTML;
         return sprintf(
             implode("\n", $details),
             $this->escape($error::class),
+            $error->getCode(),
             $this->escape($error->getFile()),
             $error->getLine(),
             nl2br($this->escape($error->getTraceAsString()))
