@@ -72,6 +72,7 @@ final class HtmlFormatterTest extends TestCase
         $output = $this->formatter->format($this->error, true);
 
         $this->assertStringContainsString('Type:', $output);
+        $this->assertStringContainsString('Code:', $output);
         $this->assertStringContainsString('File:', $output);
         $this->assertStringContainsString('Line:', $output);
         $this->assertStringContainsString('<h2>Trace</h2>', $output);

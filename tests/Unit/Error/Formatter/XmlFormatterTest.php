@@ -60,9 +60,9 @@ final class XmlFormatterTest extends TestCase
         $this->assertStringContainsString('&amp;', $output); // Escaped
         $this->assertStringNotContainsString('<trace>', $output);
 
-        // Ensure it's valid XML
         $xml = simplexml_load_string($output);
-        $this->assertInstanceOf(\SimpleXMLElement::class, $xml);
+
+        $this->assertInstanceOf(SimpleXMLElement::class, $xml); // Ensure it's valid XML
     }
 
     public function testFormatWithDebugIncludesDiagnostics(): void
@@ -70,11 +70,13 @@ final class XmlFormatterTest extends TestCase
         $output = $this->formatter->format($this->error, true);
 
         $this->assertStringContainsString('<type>', $output);
+        $this->assertStringContainsString('<code>', $output);
         $this->assertStringContainsString('<file>', $output);
         $this->assertStringContainsString('<line>', $output);
         $this->assertStringContainsString('<trace>', $output);
 
         $xml = simplexml_load_string($output);
+
         $this->assertInstanceOf(SimpleXMLElement::class, $xml);
         $this->assertSame('Invalid <tag> & broken!', (string) $xml->message);
     }

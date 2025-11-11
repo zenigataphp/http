@@ -65,6 +65,7 @@ final class JsonFormatterTest extends TestCase
         $this->assertArrayHasKey('error', $data);
         $this->assertSame('Custom error message', $data['error']['message']);
         $this->assertArrayHasKey('type', $data['error']);
+        $this->assertArrayHasKey('code', $data['error']);
         $this->assertArrayHasKey('file', $data['error']);
         $this->assertArrayHasKey('line', $data['error']);
         $this->assertArrayHasKey('trace', $data['error']);

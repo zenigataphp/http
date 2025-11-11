@@ -57,6 +57,7 @@ final class TextFormatterTest extends TestCase
 
         $this->assertStringContainsString('Message: Custom error message', $output);
         $this->assertStringContainsString('Type: RuntimeException', $output);
+        $this->assertStringContainsString('Code:', $output);
         $this->assertStringContainsString('File:', $output);
         $this->assertStringContainsString('Line:', $output);
         $this->assertStringContainsString('Trace:', $output);
