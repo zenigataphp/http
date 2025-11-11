@@ -27,18 +27,14 @@ composer require zenigata/http
 
 ## Overview
 
-The core of Zenigata HTTP is the [`HttpRunner`](./src/HttpRunner.php).
+[`HttpRunner`](./src/HttpRunner.php).
 
-It orchestrates the PSR-15 HTTP flow by combining:
-
-- A `RequestHandlerInterface` (e.g. a `Router` or `Dispatcher`)
-- A Request Initializer
-- A Response Emitter
-- An Error Handler
-
-Think of it as the "engine" that runs your HTTP application.
-
-Other key components are:
+- Orchestrates the PSR-15 HTTP flow, serving as the "engine" of the HTTP application.
+- Combines:
+    - A `RequestHandlerInterface` (e.g., `Router` or `Dispatcher`) that handles the **main request logic** and produces a PSR-7 response.
+    - A `ServerRequestInterface` [`Initializer`](./src/Request/Initializer.php) which builds the initial `ServerRequestInterface` from **PHP globals** or **provided arrays**.
+    - A `ResponseInterface` [`Emitter`](./src/Response/Emitter.php) responsible for sending headers and body to the client according to PSR-7.
+    - An [`ErrorHandler`](./src/Error/ErrorHandler.php) that logs exceptions, formats error responses, and includes debug info when enabled.
 
 [`Router`](./src/Routing/Router.php)
 
