@@ -18,12 +18,12 @@ use function is_string;
 use function sprintf;
 
 /**
- * Implementation of {@see Zenigata\Http\Middleware\DispatcherInterface}.
+ * PSR-15 middleware dispatcher.
  * 
  * A PSR-15 compatible middleware dispatcher that processes middleware sequentially, 
  * allowing a final handler as a fallback if no middleware handles the request.
  */
-class Dispatcher implements DispatcherInterface
+class Dispatcher implements RequestHandlerInterface
 {
     /**
      * Creates a new middleware dispatcher instance.
@@ -63,7 +63,9 @@ class Dispatcher implements DispatcherInterface
     }
 
     /**
-     * @inheritDoc
+     * Registers a middleware into the stack.
+     *
+     * @param MiddlewareInterface|string $middleware Middleware instance, or container-resolvable identifier.
      */
     public function register(MiddlewareInterface|string $middleware): void
     {

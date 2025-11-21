@@ -11,6 +11,7 @@ use FastRoute\RouteCollector;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Zenigata\Http\Error\HttpError;
 use Zenigata\Utility\Helper\ReflectionHelper;
 use Zenigata\Http\Handler\HandlerResolver;
@@ -24,7 +25,7 @@ use function sprintf;
 use function FastRoute\cachedDispatcher;
 
 /**
- * Implementation of {@see Zenigata\Http\Routing\RouterInterface}.
+ * PSR-15 HTTP router.
  * 
  * Provides a PSR-15 compatible routing engine that matches incoming requests
  * to registered routes, resolves handlers, and dispatches middleware.
@@ -32,7 +33,7 @@ use function FastRoute\cachedDispatcher;
  * Internally relies on {@see FastRoute\Dispatcher}
  * to match requests to routes.
  */
-class Router implements RouterInterface
+class Router implements RequestHandlerInterface
 {
     /**
      * @var int
@@ -115,7 +116,9 @@ class Router implements RouterInterface
     }
 
     /**
-     * @inheritDoc
+     * Registers a route, or a group of routes.
+     * 
+     * @param RouteInterface|GroupInterface|string $route Route, group, or container-resolvable identifier.
      */
     public function register(RouteInterface|GroupInterface|string $route): void
     {
@@ -123,7 +126,9 @@ class Router implements RouterInterface
     }
 
     /**
-     * @inheritDoc
+     * Returns all registered routes.
+     *
+     * @return RouteInterface[] List of registered routes.
      */
     public function getRoutes(): array
     {
