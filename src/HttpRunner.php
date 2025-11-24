@@ -7,12 +7,12 @@ namespace Zenigata\Http;
 use Throwable;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Zenigata\Http\Emitter\Emitter;
+use Zenigata\Http\Emitter\EmitterInterface;
 use Zenigata\Http\Error\ErrorHandler;
 use Zenigata\Http\Error\ErrorHandlerInterface;
-use Zenigata\Http\Request\Initializer;
-use Zenigata\Http\Request\InitializerInterface;
-use Zenigata\Http\Response\Emitter;
-use Zenigata\Http\Response\EmitterInterface;
+use Zenigata\Http\Initializer\Initializer;
+use Zenigata\Http\Initializer\InitializerInterface;
 
 /**
  * Implementation of {@see Zenigata\Http\HttpRunnerInterface}.
@@ -51,7 +51,7 @@ class HttpRunner implements HttpRunnerInterface
         $this->emitter      ??= new Emitter();
         $this->errorHandler ??= new ErrorHandler();
 
-        $request ??= $this->initializer->initialize();
+        $request ??= $this->initializer->serverRequest();
         
         try {
             $response = $this->handler->handle($request);
