@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Response;
+namespace Zenigata\Http\Handler;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -11,7 +11,7 @@ use Psr\Http\Message\StreamInterface;
  * Utility trait for building responses in various formats.
  *
  * Provides convenience methods for generating PSR-7 responses in common formats.
- * Uses {@see Zenigata\Http\Response\ResponseBuilder} internally.
+ * Uses {@see Zenigata\Http\Handler\ResponseBuilder} internally.
  */
 trait ResponseBuilderTrait
 {
@@ -31,7 +31,7 @@ trait ResponseBuilderTrait
     }
 
     /**
-     * @see Zenigata\Http\Response\ResponseBuilder::createResponse()
+     * @see Zenigata\Http\Handler\ResponseBuilder::createResponse()
      */
     protected function createResponse(int $status = 200, mixed $body = null, array $headers = []): ResponseInterface
     {
@@ -39,7 +39,7 @@ trait ResponseBuilderTrait
     }
 
     /**
-     * @see Zenigata\Http\Response\ResponseBuilder::createStream()
+     * @see Zenigata\Http\Handler\ResponseBuilder::createStream()
      */
     protected function createStream(mixed $body): StreamInterface
     {
@@ -47,7 +47,7 @@ trait ResponseBuilderTrait
     }
 
     /**
-     * @see Zenigata\Http\Response\ResponseBuilder::jsonResponse()
+     * @see Zenigata\Http\Handler\ResponseBuilder::jsonResponse()
      */
     protected function jsonResponse(
         mixed $data,
@@ -60,7 +60,7 @@ trait ResponseBuilderTrait
     }
 
     /**
-     * @see Zenigata\Http\Response\ResponseBuilder::htmlResponse()
+     * @see Zenigata\Http\Handler\ResponseBuilder::htmlResponse()
      */
     protected function htmlResponse(string $html, int $status = 200, array $headers = []): ResponseInterface
     {
@@ -68,7 +68,7 @@ trait ResponseBuilderTrait
     }
 
     /** 
-     * @see Zenigata\Http\Response\ResponseBuilder::textResponse()
+     * @see Zenigata\Http\Handler\ResponseBuilder::textResponse()
      */
     protected function textResponse(string $text, int $status = 200, array $headers = []): ResponseInterface
     {
@@ -76,7 +76,7 @@ trait ResponseBuilderTrait
     }
 
     /** 
-     * @see Zenigata\Http\Response\ResponseBuilder::xmlResponse()
+     * @see Zenigata\Http\Handler\ResponseBuilder::xmlResponse()
      */
     protected function xmlResponse(string $xml, int $status = 200, array $headers = []): ResponseInterface
     {
@@ -84,7 +84,7 @@ trait ResponseBuilderTrait
     }
 
     /**
-     * @see Zenigata\Http\Response\ResponseBuilder::redirectResponse()
+     * @see Zenigata\Http\Handler\ResponseBuilder::redirectResponse()
      */
     protected function redirectResponse(string $location, int $status = 302, array $headers = []): ResponseInterface
     {
@@ -92,7 +92,7 @@ trait ResponseBuilderTrait
     }
 
     /**
-     * @see Zenigata\Http\Response\ResponseBuilder::emptyResponse()
+     * @see Zenigata\Http\Handler\ResponseBuilder::emptyResponse()
      */
     protected function emptyResponse(int $status = 204, array $headers = []): ResponseInterface
     {
@@ -100,7 +100,7 @@ trait ResponseBuilderTrait
     }
 
     /**
-     * @see Zenigata\Http\Response\ResponseBuilder::fileResponse()
+     * @see Zenigata\Http\Handler\ResponseBuilder::fileResponse()
      */
     protected function fileResponse(
         string $path,

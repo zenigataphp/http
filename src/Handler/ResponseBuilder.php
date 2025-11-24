@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Response;
+namespace Zenigata\Http\Handler;
 
 use InvalidArgumentException;
 use RuntimeException;
@@ -39,33 +39,19 @@ class ResponseBuilder
      * @var int[]
      */
     private const REDIRECT_CODES = [301, 302, 303, 307, 308];
-    
-    /**
-     * Factory used to generate PSR-7 responses.
-     *
-     * @var ResponseFactoryInterface
-     */
-    private ResponseFactoryInterface $responseFactory;
-    
-    /**
-     * Factory used to generate PSR-7 streams.
-     *
-     * @var StreamFactoryInterface
-     */
-    private StreamFactoryInterface $streamFactory;
 
     /**
      * Creates a new response builder instance.
      *
-     * @param ResponseFactoryInterface|null $responseFactory Optional response factory.
-     * @param StreamFactoryInterface|null   $streamFactory   Optional stream factory.
+     * @param ResponseFactoryInterface|null $responseFactory Factory used to generate PSR-7 responses.
+     * @param StreamFactoryInterface|null   $streamFactory   Factory used to generate PSR-7 streams.
      */
     public function __construct(
-        ?ResponseFactoryInterface $responseFactory = null,
-        ?StreamFactoryInterface $streamFactory = null,
+        private ?ResponseFactoryInterface $responseFactory = null,
+        private ?StreamFactoryInterface $streamFactory = null,
     ) {
-        $this->responseFactory = $responseFactory ?? Factory::getResponseFactory();
-        $this->streamFactory   = $streamFactory   ?? Factory::getStreamFactory();
+        $this->responseFactory ??= Factory::getResponseFactory();
+        $this->streamFactory   ??= Factory::getStreamFactory();
     }
 
     /**

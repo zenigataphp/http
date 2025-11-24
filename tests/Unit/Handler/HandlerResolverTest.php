@@ -15,7 +15,7 @@ use Zenigata\Utility\Psr\FakeContainer;
 use Zenigata\Utility\Psr\FakeRequestHandler;
 
 /**
- * Unit test for {@see HandlerResolver}.
+ * Unit test for {@see Zenigata\Http\Handler\HandlerResolver}.
  * 
  * Covered cases:
  *
@@ -48,7 +48,7 @@ final class HandlerResolverTest extends TestCase
 
         $resolver = new HandlerResolver(container: $container);
 
-        $resolved = $resolver->resolve('handler', []);
+        $resolved = $resolver->resolve('handler');
         $response = $resolved->handle(new ServerRequest('GET', '/'));
 
         $this->assertSame(204, $response->getStatusCode());
@@ -67,7 +67,7 @@ final class HandlerResolverTest extends TestCase
 
         $resolver = new HandlerResolver(container: $container);
 
-        $resolved = $resolver->resolve(['controller', 'index'], []);
+        $resolved = $resolver->resolve(['controller', 'index']);
         $response = $resolved->handle(new ServerRequest('GET', '/'));
 
         $this->assertSame(204, $response->getStatusCode());

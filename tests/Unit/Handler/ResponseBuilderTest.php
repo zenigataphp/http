@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Response;
+namespace Zenigata\Http\Test\Unit\Handler;
 
 use InvalidArgumentException;
 use RuntimeException;
@@ -10,13 +10,13 @@ use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
-use Zenigata\Http\Response\ResponseBuilder;
+use Zenigata\Http\Handler\ResponseBuilder;
 
 use function fopen;
 use function tmpfile;
 
 /**
- * Unit test for {@see ResponseBuilder}.
+ * Unit test for {@see Zenigata\Http\Handler\ResponseBuilder}.
  *
  * Covered cases:
  * 
