@@ -7,7 +7,7 @@ namespace Zenigata\Http\Error;
 use Throwable;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Zenigata\Http\Error\Formatter\FormatterInterface;
+use Zenigata\Http\ErrorInterface;
 
 /**
  * Defines a contract for handling errors within an HTTP context.

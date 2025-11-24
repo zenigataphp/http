@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Error\Formatter;
+namespace Zenigata\Http\Error;
 
 use Throwable;
 
@@ -17,16 +17,19 @@ use function implode;
  *
  * Produces an XML document describing the error message and code.
  */
-final class XmlFormatter extends AbstractFormatter
+final class XmlFormatter implements FormatterInterface
 {
     /**
      * @inheritDoc
      */
-    protected array $contentTypes = [
-        'text/xml',
-        'application/xml',
-        'application/x-xml',
-    ];
+    public function contentTypes(): array
+    {
+        return [
+            'text/xml',
+            'application/xml',
+            'application/x-xml',
+        ];
+    }
 
     /**
      * @inheritDoc

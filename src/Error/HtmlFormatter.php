@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Error\Formatter;
+namespace Zenigata\Http\Error;
 
 use Throwable;
 
@@ -17,30 +17,25 @@ use function nl2br;
  *
  * Provides a minimal HTML template suitable for browser responses.
  */
-final class HtmlFormatter extends AbstractFormatter
+final class HtmlFormatter implements FormatterInterface
 {
-    /**
-     * @inheritDoc
-     */
-    protected array $contentTypes = [
-        'text/html',
-    ];
-
-    /**
-     * The HTML page title common to all errors.
-     *
-     * @var string
-     */
-    private string $title;
-
     /**
      * Creates a new html formatter instance.
      *
-     * @param string $title The HTML page title.
+     * @param string $title The HTML page title common to all errors.
      */
-    public function __construct(string $title = 'Something went wrong')
+    public function __construct(
+        private string $title = 'Something went wrong'
+    ) {}
+
+    /**
+     * @inheritDoc
+     */
+    public function contentTypes(): array
     {
-        $this->title = $title;
+        return [
+            'text/html',
+        ];
     }
 
     /**

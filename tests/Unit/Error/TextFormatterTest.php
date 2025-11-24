@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Error\Formatter;
+namespace Zenigata\Http\Test\Unit\Error;
 
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Zenigata\Http\Error\Formatter\TextFormatter;
+use Zenigata\Http\Error\TextFormatter;
 
 /**
- * Unit test for {@see TextFormatter}.
+ * Unit test for {@see Zenigata\Http\Error\TextFormatter}.
  *
  * Covered cases:
  * 
@@ -37,7 +37,7 @@ final class TextFormatterTest extends TestCase
 
     public function testDefaults(): void
     {
-        $contentTypes = $this->formatter->getContentTypes();
+        $contentTypes = $this->formatter->contentTypes();
 
         $this->assertSame(['text/plain'], $contentTypes);
     }

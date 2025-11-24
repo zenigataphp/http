@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Error\Formatter;
+namespace Zenigata\Http\Error;
 
 use Throwable;
 
@@ -17,14 +17,17 @@ use function json_encode;
  *
  * Produces a JSON structure with the error message and code.
  */
-final class JsonFormatter extends AbstractFormatter
+final class JsonFormatter implements FormatterInterface
 {
     /**
      * @inheritDoc
      */
-    protected array $contentTypes = [
-        'application/json',
-    ];
+    public function contentTypes(): array
+    {
+        return [
+            'application/json',
+        ];
+    }
 
     /**
      * @inheritDoc

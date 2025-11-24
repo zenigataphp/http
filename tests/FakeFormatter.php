@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Zenigata\Http\Test;
 
 use Throwable;
-use Zenigata\Http\Error\Formatter\AbstractFormatter;
+use Zenigata\Http\Error\FormatterInterface;
 
 /**
- * Fake implementation of {@see Zenigata\Http\Error\Formatter\FormatterInterface}.
+ * Fake implementation of {@see Zenigata\Http\ErrorInterface}.
  *
  * Allows injecting custom content types and a formatter callback.
  */
-final class FakeFormatter extends AbstractFormatter
+final class FakeFormatter implements FormatterInterface
 {
     /**
      * User-provided callback used to generate formatted output.
@@ -27,10 +27,19 @@ final class FakeFormatter extends AbstractFormatter
      * @param string[]                         $types  List of supported MIME types (e.g. `['application/json']`).
      * @param callable(Throwable, bool):string $format Callback used to produce the serialized error output.
      */
-    public function __construct(array $types, callable $format)
-    {
-        $this->contentTypes = $types;
+    public function __construct(
+        private array $types,
+        callable $format
+    ) {
         $this->format = $format;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function contentTypes(): array
+    {
+        return $this->types;
     }
 
     /**

@@ -19,7 +19,7 @@ use Zenigata\Utility\Psr\FakeLogger;
 use function json_encode;
 
 /**
- * Unit test for {@see ErrorHandler}.
+ * Unit test for {@see Zenigata\Cli\Error\ErrorHandler}.
  *
  * Covered cases:
  * 

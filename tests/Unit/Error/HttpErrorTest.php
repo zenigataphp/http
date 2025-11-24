@@ -12,7 +12,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Zenigata\Http\Error\HttpError;
 
 /**
- * Unit test for {@see HttpError}.
+ * Unit test for {@see Zenigata\Http\Error\HttpError}.
  *
  * Covered cases:
  * 

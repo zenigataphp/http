@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Error\Formatter;
+namespace Zenigata\Http\Test\Unit\Error;
 
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Zenigata\Http\Error\Formatter\HtmlFormatter;
+use Zenigata\Http\Error\HtmlFormatter;
 
 use function str_contains;
 
 /**
- * Unit test for {@see HtmlFormatter}.
+ * Unit test for {@see Zenigata\Http\Error\HtmlFormatter}.
  *
  * Covered cases:
  * 
@@ -42,7 +42,7 @@ final class HtmlFormatterTest extends TestCase
 
     public function testDefaults(): void
     {
-        $this->assertSame(['text/html'], $this->formatter->getContentTypes());
+        $this->assertSame(['text/html'], $this->formatter->contentTypes());
     }
 
     public function testCustomTitleOverridesDefault(): void

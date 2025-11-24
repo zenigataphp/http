@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Error\Formatter;
+namespace Zenigata\Http\Test\Unit\Error;
 
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Zenigata\Http\Error\Formatter\JsonFormatter;
+use Zenigata\Http\Error\JsonFormatter;
 
 use function json_decode;
 
 /**
- * Unit test for {@see JsonFormatter}.
+ * Unit test for {@see Zenigata\Http\Error\JsonFormatter}.
  *
  * Covered cases:
  * 
@@ -40,7 +40,7 @@ final class JsonFormatterTest extends TestCase
 
     public function testDefaults(): void
     {
-        $contentTypes = $this->formatter->getContentTypes();
+        $contentTypes = $this->formatter->contentTypes();
 
         $this->assertSame(['application/json'], $contentTypes);
     }

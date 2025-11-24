@@ -11,11 +11,6 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
-use Zenigata\Http\Error\Formatter\FormatterInterface;
-use Zenigata\Http\Error\Formatter\HtmlFormatter;
-use Zenigata\Http\Error\Formatter\JsonFormatter;
-use Zenigata\Http\Error\Formatter\TextFormatter;
-use Zenigata\Http\Error\Formatter\XmlFormatter;
 
 use function sprintf;
 use function str_contains;
@@ -66,7 +61,7 @@ class ErrorHandler implements ErrorHandlerInterface
      */
     public function addFormatter(FormatterInterface $formatter): void
     {
-        if ($formatter->getContentTypes() === []) {
+        if ($formatter->contentTypes() === []) {
             throw new LogicException(sprintf(
                 'Formatter %s must declare at least one supported content type.',
                 $formatter::class
@@ -121,7 +116,7 @@ class ErrorHandler implements ErrorHandlerInterface
         $accept = $request->getHeaderLine('Accept');
 
         foreach ($this->formatters as $formatter) {
-            foreach ($formatter->getContentTypes() as $contentType) {
+            foreach ($formatter->contentTypes() as $contentType) {
                 if (str_contains($accept, $contentType)) {
                     return [$formatter, $contentType];
                 }
@@ -129,7 +124,7 @@ class ErrorHandler implements ErrorHandlerInterface
         }
 
         $formatter   = $this->formatters[0];
-        $contentType = $formatter->getContentTypes()[0];
+        $contentType = $formatter->contentTypes()[0];
 
         return [$formatter, $contentType];
     }

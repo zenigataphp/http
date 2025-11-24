@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Error\Formatter;
+namespace Zenigata\Http\Error;
 
 use Throwable;
 
@@ -13,14 +13,17 @@ use function sprintf;
  *
  * Provides a concise text output suitable for CLI or plain HTTP responses.
  */
-final class TextFormatter extends AbstractFormatter
+final class TextFormatter implements FormatterInterface
 {
     /**
      * @inheritDoc
      */
-    protected array $contentTypes = [
-        'text/plain',
-    ];
+    public function contentTypes(): array
+    {
+        return [
+            'text/plain',
+        ];
+    }
 
     /**
      * @inheritDoc

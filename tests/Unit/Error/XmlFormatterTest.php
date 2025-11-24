@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Error\Formatter;
+namespace Zenigata\Http\Test\Unit\Error;
 
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use SimpleXMLElement;
-use Zenigata\Http\Error\Formatter\XmlFormatter;
+use Zenigata\Http\Error\XmlFormatter;
 
 use function str_contains;
 use function simplexml_load_string;
 
 /**
- * Unit test for {@see XmlFormatter}.
+ * Unit test for {@see Zenigata\Http\Error\XmlFormatter}.
  *
  * Covered cases:
  * 
@@ -45,7 +45,7 @@ final class XmlFormatterTest extends TestCase
     {
         $this->assertSame(
             ['text/xml', 'application/xml', 'application/x-xml'],
-            $this->formatter->getContentTypes()
+            $this->formatter->contentTypes()
         );
     }
 
