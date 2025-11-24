@@ -51,7 +51,7 @@ class HttpRunner implements HttpRunnerInterface
         $this->emitter      ??= new Emitter();
         $this->errorHandler ??= new ErrorHandler();
 
-        $request ??= $this->initializer->serverRequest();
+        $request ??= $this->initializer->createServerRequest();
         
         try {
             $response = $this->handler->handle($request);

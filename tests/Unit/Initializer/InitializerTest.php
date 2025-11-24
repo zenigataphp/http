@@ -49,7 +49,7 @@ final class InitializerTest extends TestCase
             'HTTPS'           => 'on',
         ];
 
-        $request = $this->initializer->serverRequest(
+        $request = $this->initializer->createServerRequest(
             server: $server,
             get:    ['foo' => 'bar'],
             post:   ['a' => 'b'],
@@ -72,7 +72,7 @@ final class InitializerTest extends TestCase
     {
         $server = ['SERVER_PROTOCOL' => 'INVALID_PROTOCOL'];
         
-        $request = $this->initializer->serverRequest(server: $server);
+        $request = $this->initializer->createServerRequest(server: $server);
 
         $this->assertSame('1.1', $request->getProtocolVersion());
     }
@@ -81,7 +81,7 @@ final class InitializerTest extends TestCase
     {
         $server = ['SERVER_PROTOCOL' => 'HTTP/3'];
         
-        $request = $this->initializer->serverRequest(server: $server);
+        $request = $this->initializer->createServerRequest(server: $server);
 
         $this->assertSame('3', $request->getProtocolVersion());
     }
@@ -90,7 +90,7 @@ final class InitializerTest extends TestCase
     {
         $server = ['HTTP_COOKIE' => 'a=1; b=2; c=hello'];
         
-        $request = $this->initializer->serverRequest(server: $server);
+        $request = $this->initializer->createServerRequest(server: $server);
 
         $this->assertSame(['a' => '1', 'b' => '2', 'c' => 'hello'], $request->getCookieParams());
     }
@@ -102,7 +102,7 @@ final class InitializerTest extends TestCase
             'SERVER_PROTOCOL'             => 'HTTP/1.1',
         ];
 
-        $request = $this->initializer->serverRequest(server: $server);
+        $request = $this->initializer->createServerRequest(server: $server);
 
         $this->assertSame('Bearer token-xyz', $request->getHeaderLine('Authorization'));
     }
@@ -114,7 +114,7 @@ final class InitializerTest extends TestCase
             'SERVER_PROTOCOL' => 'HTTP/1.1',
         ];
 
-        $request = $this->initializer->serverRequest(server: $server);
+        $request = $this->initializer->createServerRequest(server: $server);
 
         $this->assertFalse($request->hasHeader('Proxy'));
     }
@@ -127,7 +127,7 @@ final class InitializerTest extends TestCase
             'SERVER_PROTOCOL' => 'HTTP/2',
         ];
 
-        $request = $this->initializer->serverRequest(server: $server);
+        $request = $this->initializer->createServerRequest(server: $server);
 
         $this->assertSame('https', $request->getUri()->getScheme());
     }
@@ -139,7 +139,7 @@ final class InitializerTest extends TestCase
             'SERVER_NAME'     => 'localhost',
         ];
 
-        $request = $this->initializer->serverRequest(server: $server);
+        $request = $this->initializer->createServerRequest(server: $server);
 
         $this->assertSame('', $request->getUri()->getPath());
     }
@@ -159,7 +159,7 @@ final class InitializerTest extends TestCase
             ],
         ];
 
-        $request = $this->initializer->serverRequest(files: $files);
+        $request = $this->initializer->createServerRequest(files: $files);
 
         $uploaded = $request->getUploadedFiles()['upload'];
 
@@ -183,7 +183,7 @@ final class InitializerTest extends TestCase
             ],
         ];
 
-        $request = $this->initializer->serverRequest(files: $files);
+        $request = $this->initializer->createServerRequest(files: $files);
 
         $uploaded = $request->getUploadedFiles()['docs'][0];
 

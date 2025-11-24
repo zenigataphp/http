@@ -25,7 +25,7 @@ interface InitializerInterface
      * 
      * @return ServerRequestInterface The fully initialized PSR-7 server request.
      */
-    public function serverRequest(
+    public function createServerRequest(
         ?array $server = null,
         ?array $get    = null,
         ?array $post   = null,

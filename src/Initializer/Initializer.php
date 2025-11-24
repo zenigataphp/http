@@ -85,7 +85,7 @@ class Initializer implements InitializerInterface
     /**
      * @inheritDoc
      */
-    public function serverRequest(
+    public function createServerRequest(
         ?array $server = null,
         ?array $get    = null,
         ?array $post   = null,
@@ -96,7 +96,7 @@ class Initializer implements InitializerInterface
         $server  ??= $_SERVER;
 
         $uri     = $this->createUri($server);
-        $request = $this->createServerRequest($uri, $server);
+        $request = $this->createRequest($uri, $server);
         $headers = $this->detectHeaders($server);
         
         foreach ($headers as $name => $value) {
@@ -359,11 +359,13 @@ class Initializer implements InitializerInterface
      *
      * @param array<string,mixed> $server
      */
-    private function createServerRequest(UriInterface $uri, array $server): ServerRequestInterface
+    private function createRequest(UriInterface $uri, array $server): ServerRequestInterface
     {
-        $method  = strtoupper($server['REQUEST_METHOD'] ?? 'GET');
-
-        return $this->serverRequestFactory->createServerRequest($method, $uri, $server);
+        return $this->serverRequestFactory->createServerRequest(
+            strtoupper($server['REQUEST_METHOD'] ?? 'GET'),
+            $uri,
+            $server
+        );
     }
 
     /**
