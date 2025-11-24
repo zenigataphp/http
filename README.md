@@ -32,11 +32,11 @@ composer require zenigata/http
 - Orchestrates the PSR-15 HTTP flow, serving as the "engine" of the HTTP application.
 - Combines:
     - A `RequestHandlerInterface` (e.g., `Router` or `Dispatcher`) that handles the **main request logic** and produces a PSR-7 response.
-    - A `ServerRequestInterface` [`Initializer`](./src/Request/Initializer.php) which builds the initial `ServerRequestInterface` from **PHP globals** or **provided arrays**.
-    - A `ResponseInterface` [`Emitter`](./src/Response/Emitter.php) responsible for sending headers and body to the client according to PSR-7.
+    - A `ServerRequestInterface` [`Initializer`](./src/Initializer/Initializer.php) which builds the initial `ServerRequestInterface` from **PHP globals** or **provided arrays**.
+    - A `ResponseInterface` [`Emitter`](./src/Emitter/Emitter.php) responsible for sending headers and body to the client according to PSR-7.
     - An [`ErrorHandler`](./src/Error/ErrorHandler.php) that logs exceptions, formats error responses, and includes debug info when enabled.
 
-[`Router`](./src/Routing/Router.php)
+[`Router`](./src/Router/Router.php)
 
 - PSR-15 compatible handler built on top of on [FastRoute](https://github.com/nikic/FastRoute).
 - Supports **route groups**, **middleware stacks**, and **container-based resolution**.
@@ -46,9 +46,6 @@ composer require zenigata/http
   - **Callables**, with signature `function(ServerRequestInterface $request): ResponseInterface`.
   - **[Class, method]** controller pairs
   - **Instances** of `RequestHandlerInterface`
-- The internal [`HandlerInvoker`](./src/Handler/HandlerInvoker.php) supports two invocation modes:
-  - **Named arguments** — default
-  - **Positional arguments** — enabled via constructor flag
 
 [`Dispatcher`](./src/Middleware/Dispatcher.php)
 
@@ -61,11 +58,11 @@ composer require zenigata/http
 - Middleware wrapper for the `Router`.
 - Allows routing to be part of a larger middleware stack.
 
-[`ResponseBuilder`](./src/Response/ResponseBuilder.php)
+[`ResponseBuilder`](./src/Handler/ResponseBuilder.php)
 
 - Automatically detect PSR-17 factories using the `Factory` utility from [`middleware/utils`](https://github.com/middlewares/utils?tab=readme-ov-file#factory).
 - Provides convenience methods to build PSR-7 `ResponseInterface` instances (e.g. `jsonResponse`, `htmlResponse`, `fileResponse`, etc).
-- Can be reused through the [`ResponseBuilderTrait`](./src/Response/ResponseBuilderTrait.php) to share response-building logic across handlers.
+- Can be reused through the [`ResponseBuilderTrait`](./src/Handler/ResponseBuilderTrait.php) to share response-building logic across handlers.
 
 [`ErrorHandler`](./src/Error/ErrorHandler.php)
 
@@ -89,15 +86,15 @@ use Laminas\Diactoros\Response\HtmlResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Zenigata\Http\HttpRunner;
-use Zenigata\Http\Routing\Router;
-use Zenigata\Http\Routing\Route;
+use Zenigata\Http\Router\Router;
+use Zenigata\Http\Router\Route;
 
 $router = new Router([
     Route::get('/', function (ServerRequestInterface $request): ResponseInterface {
         return new HtmlResponse('Hello World');
     }),
-    Route::get('/hello/{name}', function (ServerRequestInterface $request, string $name): ResponseInterface {
-        return new HtmlResponse("Hello {$name}");
+    Route::get('/hello/{name}', function (ServerRequestInterface $request): ResponseInterface {
+        return new HtmlResponse("Hello {$request->getAttribute('name', 'World')}");
     }),
 ]);
 
@@ -114,7 +111,7 @@ use Zenigata\Http\HttpRunner;
 use Zenigata\Http\Middleware\Dispatcher;
 use Zenigata\Http\Middleware\JsonPayloadMiddleware;
 use Zenigata\Http\Middleware\UrlEncodePayloadMiddleware;
-use Zenigata\Http\Routing\Router;
+use Zenigata\Http\Router\Router;
 
 $dispatcher = new Dispatcher(
     middleware: [
@@ -141,13 +138,13 @@ use Zenigata\Http\HttpRunner;
 use Zenigata\Http\Middleware\Dispatcher;
 use Zenigata\Http\Middleware\JsonPayloadMiddleware;
 use Zenigata\Http\Middleware\UrlEncodePayloadMiddleware;
-use Zenigata\Http\Routing\Router;
+use Zenigata\Http\Router\Router;
 
 $dispatcher = new Dispatcher(
     middleware: [
         new JsonPayloadMiddleware(),
         new Router($routes),
-        new CustomPostRoutingMiddleware(),
+        new CustomPostRouterMiddleware(),
     ],
     // If no final handler is defined, the Dispatcher will throw an HttpError (404 Not Found).
 );
@@ -170,8 +167,8 @@ use DI\Container;
 use Psr\Container\ContainerInterface;
 use Zenigata\Http\HttpRunner;
 use Zenigata\Http\Middleware\Dispatcher;
-use Zenigata\Http\Routing\Route;
-use Zenigata\Http\Routing\Router;
+use Zenigata\Http\Router\Route;
+use Zenigata\Http\Router\Router;
 
 // Example with PHP-DI
 $container = new Container();
@@ -236,7 +233,7 @@ Zenigata HTTP is designed for flexibility and extensibility:
 - Integrate any PSR-15 compatible middleware, router, or handler.
 - Plug in a PSR-11 container to lazily resolve handlers and middleware by service ID.
 - Extend or replace the `ErrorHandlerInterface` to customize error rendering, logging, or formatting.
-- Customize how the `Router` resolves and invokes handlers by providing your own implementations of `HandlerResolverInterface` or `HandlerInvokerInterface` (e.g. advanced integration with dependency injection containers, or specialized invocation strategies).
+- Customize how the `Router` resolves handlers by providing your own implementations of `HandlerResolverInterface`.
 
 ## Contributing
 
