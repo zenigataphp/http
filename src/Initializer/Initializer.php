@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Request;
+namespace Zenigata\Http\Initializer;
 
 use Throwable;
 use Middlewares\Utils\Factory;
@@ -35,7 +35,7 @@ use function ucwords;
 use function urldecode;
 
 /**
- * Implementation of {@see Zenigata\Http\Request\InitializerInterface}.
+ * Implementation of {@see Zenigata\Http\Initializer\InitializerInterface}.
  *
  * Builds the initial server request that drives the HTTP lifecycle
  * in full compliance with PSR standards.
@@ -61,11 +61,6 @@ class Initializer implements InitializerInterface
     private const BLACKLISTED_HEADERS = [
         'HTTP_PROXY', // https://httpoxy.org
     ];
-
-    private ServerRequestFactoryInterface $serverRequestFactory;
-    private StreamFactoryInterface $streamFactory;
-    private UploadedFileFactoryInterface $uploadedFileFactory;
-    private UriFactoryInterface $uriFactory;
     
     /**
      * Creates a new initializer instance.
@@ -76,21 +71,21 @@ class Initializer implements InitializerInterface
      * @param UriFactoryInterface|null           $uriFactory           Optional URI factory.
      */
     public function __construct(
-        ?ServerRequestFactoryInterface $serverRequestFactory = null,
-        ?StreamFactoryInterface $streamFactory = null,
-        ?UploadedFileFactoryInterface $uploadedFileFactory = null,
-        ?UriFactoryInterface $uriFactory = null
+        private ?ServerRequestFactoryInterface $serverRequestFactory = null,
+        private ?StreamFactoryInterface $streamFactory = null,
+        private ?UploadedFileFactoryInterface $uploadedFileFactory = null,
+        private ?UriFactoryInterface $uriFactory = null
     ) {
-        $this->serverRequestFactory = $serverRequestFactory ?? Factory::getServerRequestFactory();
-        $this->streamFactory        = $streamFactory        ?? Factory::getStreamFactory();
-        $this->uploadedFileFactory  = $uploadedFileFactory  ?? Factory::getUploadedFileFactory();
-        $this->uriFactory           = $uriFactory           ?? Factory::getUriFactory();
+        $this->serverRequestFactory ??= Factory::getServerRequestFactory();
+        $this->streamFactory        ??= Factory::getStreamFactory();
+        $this->uploadedFileFactory  ??= Factory::getUploadedFileFactory();
+        $this->uriFactory           ??= Factory::getUriFactory();
     }
 
     /**
      * @inheritDoc
      */
-    public function initialize(
+    public function serverRequest(
         ?array $server = null,
         ?array $get    = null,
         ?array $post   = null,

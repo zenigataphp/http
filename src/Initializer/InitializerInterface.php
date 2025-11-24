@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Request;
+namespace Zenigata\Http\Initializer;
 
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Defines a contract for creating PSR-7 server requests and error responses.
+ * Defines a contract for initializing the HTTP lifecycle.
  *
- * Implementations are responsible for creating the initial PSR-7 server request
- * and providing a fallback error response if initialization fails.
+ * Implementations are responsible for building the initial PSR-7 server request
+ * or other structures required to bootstrap the HTTP handling workflow.
  */
 interface InitializerInterface
 {
@@ -25,7 +25,7 @@ interface InitializerInterface
      * 
      * @return ServerRequestInterface The fully initialized PSR-7 server request.
      */
-    public function initialize(
+    public function serverRequest(
         ?array $server = null,
         ?array $get    = null,
         ?array $post   = null,
