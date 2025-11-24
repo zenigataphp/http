@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Routing;
+namespace Zenigata\Http\Test\Unit\Router;
 
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Zenigata\Http\Routing\Route;
+use Zenigata\Http\Router\Route;
 use Zenigata\Utility\Psr\FakeRequestHandler;
 
 /**
- * Unit test for {@see Route}.
+ * Unit test for {@see Zenigata\Http\Router\Route}.
  *
  * Covered cases:
  *
  * - Create routes via static factories for standard HTTP methods.
  * - Normalize route paths to ensure a single leading slash and no trailing slashes.
- * - Create multiple routes at once with {@see Route::map()} and {@see Route::any()}.
- * - Group routes under a prefix and/or middleware via {@see Route::group()}, updating all routes accordingly.
+ * - Create multiple routes at once.
+ * - Group routes under a prefix and/or middleware, updating all routes accordingly.
  * - Accept {@see \Psr\Http\Server\RequestHandlerInterface} as a handler directly.
  * - Ensure immutability for prefix and middleware modifications.
  * - Handle edge cases: root path, empty middleware, empty prefix, avoiding mutation in grouped contexts.

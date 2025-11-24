@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Routing;
+namespace Zenigata\Http\Router;
 
 /**
  * Defines a contract for grouping multiple routes.

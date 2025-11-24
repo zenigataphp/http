@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenigata\Http\Routing;
+namespace Zenigata\Http\Router;
 
 use Psr\Http\Server\MiddlewareInterface;
 
@@ -8,7 +8,7 @@ use function strtoupper;
 use function trim;
 
 /**
- * Implementation of {@see Zenigata\Http\Routing\RouteInterface}.
+ * Implementation of {@see Zenigata\Http\Router\RouteInterface}.
  * 
  * Represents a single HTTP route with its method, path, handler,
  * and optional middleware stack.

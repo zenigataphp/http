@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Routing;
+namespace Zenigata\Http\Test\Unit\Router;
 
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
-use Zenigata\Http\Routing\Router;
-use Zenigata\Http\Routing\RouteInterface;
-use Zenigata\Http\Routing\GroupInterface;
-use Zenigata\Http\Routing\RouteMatch;
 use Zenigata\Http\Error\HttpError;
+use Zenigata\Http\Router\Router;
+use Zenigata\Http\Router\RouteInterface;
+use Zenigata\Http\Router\GroupInterface;
+use Zenigata\Http\Router\RouteMatch;
 use Zenigata\Utility\Psr\FakeContainer;
 use Zenigata\Utility\Psr\FakeRequestHandler;
 
 /**
- * Unit test for {@see Router}.
+ * Unit test for {@see Zenigata\Http\Router\Router}.
  * 
  * Covered cases:
  *
- * - Successfully handle a matched route returning {@see ResponseInterface}.
+ * - Successfully handle a matched route returning {@see Psr\Http\Message\ResponseInterface}.
  * - Handle not-found (404) and method-not-allowed (405).
  * - Properly register and flatten routes and groups.
  * - Resolve a route string definitions.

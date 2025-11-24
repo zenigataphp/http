@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Routing;
+namespace Zenigata\Http\Test\Unit\Router;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Server\MiddlewareInterface;
-use Zenigata\Http\Routing\Route;
-use Zenigata\Http\Routing\Group;
+use Zenigata\Http\Router\Route;
+use Zenigata\Http\Router\Group;
 use Zenigata\Utility\Psr\FakeMiddleware;
 
 /**
- * Unit test for {@see Group}.
+ * Unit test for {@see Zenigata\Http\Router\Group}.
  * 
  * Covered cases:
  *

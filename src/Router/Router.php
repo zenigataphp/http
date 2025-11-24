@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Routing;
+namespace Zenigata\Http\Router;
 
 use InvalidArgumentException;
 use LogicException;
@@ -179,7 +179,7 @@ class Router implements RequestHandlerInterface
 
     /**
      * Flattens all registered routes and groups into a single array
-     * of {@see Zenigata\Http\Routing\RouteInterface} instances.
+     * of {@see Zenigata\Http\Router\RouteInterface} instances.
      */
     private function resolveRoutes(): void
     {

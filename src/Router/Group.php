@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Routing;
+namespace Zenigata\Http\Router;
 
 use Psr\Http\Server\MiddlewareInterface;
 
@@ -10,7 +10,7 @@ use function array_merge;
 use function trim;
 
 /**
- * Implementation of {@see Zenigata\Http\Routing\GroupInterface}.
+ * Implementation of {@see Zenigata\Http\Router\GroupInterface}.
  *
  * Represents a collection of routes sharing a common path prefix
  * and optional middleware stack.
