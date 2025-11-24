@@ -23,7 +23,7 @@ use function sprintf;
 /**
  * Implementation of {@see Zenigata\Http\Handler\HandlerResolverInterface}.
  * 
- * Resolves route handler definitions into a PSR-15 request handler.
+ * Resolves handler definitions into a PSR-15 request handler.
  *
  * It supports container identifiers, callables, controller as [class, method] pairs,
  * or instances of {@see RequestHandlerInterface}.
@@ -33,29 +33,27 @@ class HandlerResolver implements HandlerResolverInterface
     /**
      * Creates a new handler resolver instance.
      *
-     * @param HandlerInvokerInterface $invoker   Handler invoker used to execute callables and controllers.
      * @param ContainerInterface|null $container Optional PSR-11 container for resolving services.
      */
     public function __construct(
-        private HandlerInvokerInterface $invoker = new HandlerInvoker(),
         private ?ContainerInterface $container = null,
     ) {}
 
     /**
      * {@inheritdoc}
      */
-    public function resolve(mixed $handler, array $parameters = []): RequestHandlerInterface
+    public function resolve(mixed $handler): RequestHandlerInterface
     {
         if (is_string($handler)) {
             $handler = $this->resolveDefinition($handler);
         }
 
         if ($this->isController($handler)) {
-            $handler = $this->resolveController($handler, $parameters);
+            $handler = $this->resolveController($handler);
         }
 
         if (is_callable($handler)) {
-            $handler = $this->resolveCallable($handler, $parameters);
+            $handler = $this->resolveCallable($handler);
         }
 
         if (!$handler instanceof RequestHandlerInterface) {
@@ -101,12 +99,11 @@ class HandlerResolver implements HandlerResolverInterface
      * Resolves a [class, method] controller definition into a request handler.
      * 
      * @param array{0:string,1:string} $handler
-     * @param array<string,string>     $parameters
      * 
      * @return RequestHandlerInterface The resolved request handler.
      * @throws RuntimeException If the controller method does not exist.
      */
-    private function resolveController(array $handler, array $parameters): RequestHandlerInterface
+    private function resolveController(array $handler): RequestHandlerInterface
     {
         [$class, $method] = $handler;
 
@@ -116,32 +113,23 @@ class HandlerResolver implements HandlerResolverInterface
             throw new RuntimeException("Method '$method' does not exist on class '$class'.");
         }
 
-        return $this->resolveCallable([$instance, $method], $parameters);
+        return $this->resolveCallable([$instance, $method]);
     }
 
     /**
      * Resolves a callable into a request handler.
-     * 
-     * @param callable             $handler
-     * @param array<string,string> $parameters
      */
-    private function resolveCallable(callable $handler, array $parameters): RequestHandlerInterface
+    private function resolveCallable(callable $handler): RequestHandlerInterface
     {
-        return new class($handler, $parameters, $this->invoker) implements RequestHandlerInterface {
+        return new class($handler) implements RequestHandlerInterface {
             /** @param callable $handler */
             public function __construct(
-                private $handler,
-                private array $parameters,
-                private HandlerInvokerInterface $invoker,
+                private $handler
             ) {}
 
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
-                return $this->invoker->invoke(
-                    handler:    $this->handler,
-                    request:    $request,
-                    parameters: $this->parameters
-                );
+                return ($this->handler)($request);
             }
         };
     }
