@@ -10,16 +10,16 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
 use Zenigata\Http\Middleware\RouterMiddleware;
-use Zenigata\Http\Routing\RouteInterface;
+use Zenigata\Http\Router\RouteInterface;
 use Zenigata\Utility\Psr\FakeRequestHandler;
 
 /**
- * Unit test for {@see RouterMiddleware}.
+ * Unit test for {@see Zenigata\Http\Middleware\RouterMiddleware}.
  * 
  * Covered cases:
  *
- * - Process a matching request and return the expected {@see ResponseInterface}.
- * - Delegate routing operations to the internal {@see Router}.
+ * - Process a matching request and return the expected {@see Psr\Http\Message\ResponseInterface}.
+ * - Delegate routing operations to the internal {@see Zenigata\Http\Router\Router}.
  * - Properly register and expose routes.
  * - Preserve router configuration (cache flag and route retrieval).
  */

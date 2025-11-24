@@ -17,7 +17,7 @@ use Zenigata\Utility\Psr\FakeRequestHandler;
 use function array_shift;
 
 /**
- * Unit test for {@see Dispatcher}.
+ * Unit test for {@see Zenigata\Http\Middleware\Dispatcher}.
  * 
  * Covered cases:
  *

@@ -14,7 +14,7 @@ use Zenigata\Utility\Psr\FakeRequestHandler;
 use Zenigata\Http\Test\TestableEmitter;
 
 /**
- * Unit test for {@see HttpRunner}.
+ * Unit test for {@see Zenigata\Http\HttpRunner}.
  * 
  * Covered cases:
  *

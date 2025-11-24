@@ -14,7 +14,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Zenigata\Http\Middleware\UrlEncodePayloadMiddleware;
 
 /**
- * Unit test for {@see UrlEncodePayloadMiddleware}.
+ * Unit test for {@see Zenigata\Http\Middleware\UrlEncodePayloadMiddleware}.
  *
  * Covered cases:
  *

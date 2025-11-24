@@ -16,7 +16,7 @@ use Zenigata\Http\Error\HttpError;
 use Zenigata\Http\Middleware\XmlPayloadMiddleware;
 
 /**
- * Unit test for {@see XmlPayloadMiddleware}.
+ * Unit test for {@see Zenigata\Http\Middleware\XmlPayloadMiddleware}.
  *
  * Covered cases:
  *

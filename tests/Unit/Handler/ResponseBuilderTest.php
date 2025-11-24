@@ -25,7 +25,7 @@ use function tmpfile;
  * - File responses set `Content-Disposition`, `Content-Length`, and preserve filenames (RFC 5987).
  * - Inline file responses set correct `Content-Disposition: inline` and preserve filename and size.  
  * - Redirects set `Location` header and only allow valid redirect codes.  
- * - Streams from strings/resources yield {@see StreamInterface}.
+ * - Streams from strings/resources yield {@see Psr\Http\Message\StreamInterface}.
  * - JSON encoding errors throw {@see RuntimeException}.  
  */
 #[CoversClass(ResponseBuilder::class)]

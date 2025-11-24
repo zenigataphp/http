@@ -17,7 +17,7 @@ use Zenigata\Http\Error\HttpError;
 use Zenigata\Http\Middleware\JsonPayloadMiddleware;
 
 /**
- * Unit test for {@see JsonPayloadMiddleware}.
+ * Unit test for {@see Zenigata\Http\Middleware\JsonPayloadMiddleware}.
  *
  * Covered cases:
  *
