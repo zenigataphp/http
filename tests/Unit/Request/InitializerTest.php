@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Initializer;
+namespace Zenigata\Http\Test\Unit\Request;
 
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
-use Zenigata\Http\Initializer\Initializer;
+use Zenigata\Http\Request\Initializer;
 use Zenigata\Http\Test\TestableInitializer;
 
 use const UPLOAD_ERR_OK;
 
 /**
- * Unit test for {@see Zenigata\Http\Initializer\Initializer}.
+ * Unit test for {@see Zenigata\Http\Request\Initializer}.
  *
  * Covered cases:
  * 
@@ -49,7 +49,7 @@ final class InitializerTest extends TestCase
             'HTTPS'           => 'on',
         ];
 
-        $request = $this->initializer->createServerRequest(
+        $request = $this->initializer->initialServerRequest(
             server: $server,
             get:    ['foo' => 'bar'],
             post:   ['a' => 'b'],
@@ -72,7 +72,7 @@ final class InitializerTest extends TestCase
     {
         $server = ['SERVER_PROTOCOL' => 'INVALID_PROTOCOL'];
         
-        $request = $this->initializer->createServerRequest(server: $server);
+        $request = $this->initializer->initialServerRequest(server: $server);
 
         $this->assertSame('1.1', $request->getProtocolVersion());
     }
@@ -81,7 +81,7 @@ final class InitializerTest extends TestCase
     {
         $server = ['SERVER_PROTOCOL' => 'HTTP/3'];
         
-        $request = $this->initializer->createServerRequest(server: $server);
+        $request = $this->initializer->initialServerRequest(server: $server);
 
         $this->assertSame('3', $request->getProtocolVersion());
     }
@@ -90,7 +90,7 @@ final class InitializerTest extends TestCase
     {
         $server = ['HTTP_COOKIE' => 'a=1; b=2; c=hello'];
         
-        $request = $this->initializer->createServerRequest(server: $server);
+        $request = $this->initializer->initialServerRequest(server: $server);
 
         $this->assertSame(['a' => '1', 'b' => '2', 'c' => 'hello'], $request->getCookieParams());
     }
@@ -102,7 +102,7 @@ final class InitializerTest extends TestCase
             'SERVER_PROTOCOL'             => 'HTTP/1.1',
         ];
 
-        $request = $this->initializer->createServerRequest(server: $server);
+        $request = $this->initializer->initialServerRequest(server: $server);
 
         $this->assertSame('Bearer token-xyz', $request->getHeaderLine('Authorization'));
     }
@@ -114,7 +114,7 @@ final class InitializerTest extends TestCase
             'SERVER_PROTOCOL' => 'HTTP/1.1',
         ];
 
-        $request = $this->initializer->createServerRequest(server: $server);
+        $request = $this->initializer->initialServerRequest(server: $server);
 
         $this->assertFalse($request->hasHeader('Proxy'));
     }
@@ -127,7 +127,7 @@ final class InitializerTest extends TestCase
             'SERVER_PROTOCOL' => 'HTTP/2',
         ];
 
-        $request = $this->initializer->createServerRequest(server: $server);
+        $request = $this->initializer->initialServerRequest(server: $server);
 
         $this->assertSame('https', $request->getUri()->getScheme());
     }
@@ -139,7 +139,7 @@ final class InitializerTest extends TestCase
             'SERVER_NAME'     => 'localhost',
         ];
 
-        $request = $this->initializer->createServerRequest(server: $server);
+        $request = $this->initializer->initialServerRequest(server: $server);
 
         $this->assertSame('', $request->getUri()->getPath());
     }
@@ -159,7 +159,7 @@ final class InitializerTest extends TestCase
             ],
         ];
 
-        $request = $this->initializer->createServerRequest(files: $files);
+        $request = $this->initializer->initialServerRequest(files: $files);
 
         $uploaded = $request->getUploadedFiles()['upload'];
 
@@ -183,7 +183,7 @@ final class InitializerTest extends TestCase
             ],
         ];
 
-        $request = $this->initializer->createServerRequest(files: $files);
+        $request = $this->initializer->initialServerRequest(files: $files);
 
         $uploaded = $request->getUploadedFiles()['docs'][0];
 

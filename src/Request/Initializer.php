@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Initializer;
+namespace Zenigata\Http\Request;
 
 use Throwable;
 use Middlewares\Utils\Factory;
@@ -35,10 +35,9 @@ use function ucwords;
 use function urldecode;
 
 /**
- * Implementation of {@see Zenigata\Http\Initializer\InitializerInterface}.
+ * Implementation of {@see Zenigata\Http\Request\InitializerInterface}.
  *
- * Builds the initial server request that drives the HTTP lifecycle
- * in full compliance with PSR standards.
+ * Builds the initial PSR-7 server request that drives the HTTP lifecycle.
  */
 class Initializer implements InitializerInterface
 {
@@ -85,7 +84,7 @@ class Initializer implements InitializerInterface
     /**
      * @inheritDoc
      */
-    public function createServerRequest(
+    public function initialServerRequest(
         ?array $server = null,
         ?array $get    = null,
         ?array $post   = null,
@@ -96,7 +95,7 @@ class Initializer implements InitializerInterface
         $server  ??= $_SERVER;
 
         $uri     = $this->createUri($server);
-        $request = $this->createRequest($uri, $server);
+        $request = $this->createServerRequest($uri, $server);
         $headers = $this->detectHeaders($server);
         
         foreach ($headers as $name => $value) {
@@ -359,7 +358,7 @@ class Initializer implements InitializerInterface
      *
      * @param array<string,mixed> $server
      */
-    private function createRequest(UriInterface $uri, array $server): ServerRequestInterface
+    private function createServerRequest(UriInterface $uri, array $server): ServerRequestInterface
     {
         return $this->serverRequestFactory->createServerRequest(
             strtoupper($server['REQUEST_METHOD'] ?? 'GET'),

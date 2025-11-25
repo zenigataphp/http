@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test;
 
-use Zenigata\Http\Initializer\Initializer;
+use Zenigata\Http\Request\Initializer;
 
 /**
- * Test double for {@see Zenigata\Http\Initializer\Initializer}.
+ * Test double for {@see Zenigata\Http\Request\Initializer}.
  * 
  * Simulates file upload behavior for predictable request handling.
  */
