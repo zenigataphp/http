@@ -33,14 +33,14 @@ composer require zenigata/http
 - Combines:
     - A `RequestHandlerInterface` (e.g., `Router` or `Dispatcher`) that handles the **main request logic** and produces a PSR-7 response.
     - A `ServerRequestInterface` [`Initializer`](./src/Initializer/Initializer.php) which builds the initial `ServerRequestInterface` from **PHP globals** or **provided arrays**.
-    - A `ResponseInterface` [`Emitter`](./src/Emitter/Emitter.php) responsible for sending headers and body to the client according to PSR-7.
+    - A `ResponseInterface` [`Emitter`](./src/Response/Emitter.php) responsible for sending headers and body to the client according to PSR-7.
     - An [`ErrorHandler`](./src/Error/ErrorHandler.php) that logs exceptions, formats error responses, and includes debug info when enabled.
 
 [`Router`](./src/Router/Router.php)
 
 - PSR-15 compatible handler built on top of on [FastRoute](https://github.com/nikic/FastRoute).
 - Supports **route groups**, **middleware stacks**, and **container-based resolution**.
-- Uses a [`HandlerResolver`](./src/Handler/HandlerResolver.php) to convert route definitions into executable PSR-15 handlers.
+- Uses a [`HandlerResolver`](./src/Router/HandlerResolver.php) to convert route definitions into executable PSR-15 handlers.
 - By default, accepts the following handler types:
   - **String identifiers**, resolved via container or reflection.
   - **Callables**, with signature `function(ServerRequestInterface $request): ResponseInterface`.
@@ -58,11 +58,11 @@ composer require zenigata/http
 - Middleware wrapper for the `Router`.
 - Allows routing to be part of a larger middleware stack.
 
-[`ResponseBuilder`](./src/Handler/ResponseBuilder.php)
+[`ResponseBuilder`](./src/Response/ResponseBuilder.php)
 
 - Automatically detect PSR-17 factories using the `Factory` utility from [`middleware/utils`](https://github.com/middlewares/utils?tab=readme-ov-file#factory).
 - Provides convenience methods to build PSR-7 `ResponseInterface` instances (e.g. `jsonResponse`, `htmlResponse`, `fileResponse`, etc).
-- Can be reused through the [`ResponseBuilderTrait`](./src/Handler/ResponseBuilderTrait.php) to share response-building logic across handlers.
+- Can be reused through the [`ResponseBuilderTrait`](./src/Response/ResponseBuilderTrait.php) to share response-building logic across handlers.
 
 [`ErrorHandler`](./src/Error/ErrorHandler.php)
 
