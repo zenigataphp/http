@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Handler;
+namespace Zenigata\Http\Response;
 
 use InvalidArgumentException;
 use RuntimeException;

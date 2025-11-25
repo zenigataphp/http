@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Handler;
+namespace Zenigata\Http\Test\Unit\Response;
 
 use InvalidArgumentException;
 use RuntimeException;
@@ -10,18 +10,18 @@ use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
-use Zenigata\Http\Handler\ResponseBuilder;
+use Zenigata\Http\Response\ResponseBuilder;
 
 use function fopen;
 use function tmpfile;
 
 /**
- * Unit test for {@see Zenigata\Http\Handler\ResponseBuilder}.
+ * Unit test for {@see Zenigata\Http\Response\ResponseBuilder}.
  *
  * Covered cases:
  * 
  * - Create responses from strings, streams, or resources with correct headers and status.  
- * - Shortcuts (`json()`, `html()`, `text()`, `xml()`, `empty()`) set proper `Content-Type` and body.  
+ * - Shortcut methods set proper `Content-Type` and body.  
  * - File responses set `Content-Disposition`, `Content-Length`, and preserve filenames (RFC 5987).
  * - Inline file responses set correct `Content-Disposition: inline` and preserve filename and size.  
  * - Redirects set `Location` header and only allow valid redirect codes.  

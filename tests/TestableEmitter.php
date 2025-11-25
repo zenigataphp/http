@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test;
 
-use Zenigata\Http\Emitter\Emitter;
+use Zenigata\Http\Response\Emitter;
 
 /**
- * Test double for {@see Zenigata\Http\Emitter\Emitter}.
+ * Test double for {@see Zenigata\Http\Response\Emitter}.
  * 
  * Records emitted headers and simulates environment state.
  */

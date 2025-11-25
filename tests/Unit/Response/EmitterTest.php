@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Emitter;
+namespace Zenigata\Http\Test\Unit\Response;
 
 use InvalidArgumentException;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\Stream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Zenigata\Http\Emitter\Emitter;
+use Zenigata\Http\Response\Emitter;
 use Zenigata\Http\Test\TestableEmitter;
 
 use function str_repeat;
 use function strlen;
 
 /**
- * Unit test for {@see Zenigata\Http\Emitter\Emitter}.
+ * Unit test for {@see Zenigata\Http\Response\Emitter}.
  *
  * Covered cases:
  * 

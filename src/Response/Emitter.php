@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Emitter;
+namespace Zenigata\Http\Response;
 
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
@@ -20,7 +20,7 @@ use function strlen;
 use function strtolower;
 
 /**
- * Implementation of {@see Zenigata\Http\Emitter\EmitterInterface}.
+ * Implementation of {@see Zenigata\Http\Response\EmitterInterface}.
  *
  * Emits a PSR-7 response to the current SAPI environment using streaming,
  * minimizing memory usage and handling large payloads gracefully.

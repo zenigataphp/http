@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Emitter;
+namespace Zenigata\Http\Response;
 
 use Psr\Http\Message\ResponseInterface;
 
