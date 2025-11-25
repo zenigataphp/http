@@ -9,8 +9,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Zenigata\Http\Handler\HandlerResolverInterface;
 use Zenigata\Http\Router\GroupInterface;
+use Zenigata\Http\Router\HandlerResolverInterface;
 use Zenigata\Http\Router\RouteInterface;
 use Zenigata\Http\Router\Router;
 

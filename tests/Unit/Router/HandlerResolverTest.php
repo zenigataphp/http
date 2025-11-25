@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Test\Unit\Handler;
+namespace Zenigata\Http\Test\Unit\Router;
 
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
@@ -10,16 +10,16 @@ use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
-use Zenigata\Http\Handler\HandlerResolver;
+use Zenigata\Http\Router\HandlerResolver;
 use Zenigata\Utility\Psr\FakeContainer;
 use Zenigata\Utility\Psr\FakeRequestHandler;
 
 /**
- * Unit test for {@see Zenigata\Http\Handler\HandlerResolver}.
+ * Unit test for {@see Zenigata\Http\Router\HandlerResolver}.
  * 
  * Covered cases:
  *
- * - Execute callable handlers returning {@see \Psr\Http\Message\ResponseInterface}.
+ * - Execute callable handlers returning {@see Psr\Http\Message\ResponseInterface}.
  * - Reject callables with invalid return types, throwing {@see RuntimeException}.
  * - Resolve handlers by identifier from the container and invoking them.
  * - Support controller-style handlers `[classOrService, method]` via container or direct.

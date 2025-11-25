@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Handler;
+namespace Zenigata\Http\Router;
 
 use Psr\Http\Server\RequestHandlerInterface;
 
@@ -15,7 +15,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 interface HandlerResolverInterface
 {
     /**
-     * Resolves a handler definition into a {@see RequestHandlerInterface}.
+     * Resolves a handler definition into a {@see Psr\Http\Server\RequestHandlerInterface}.
      *
      * @param mixed $handler The handler definition provided by the router.
      *

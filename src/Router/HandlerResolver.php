@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Handler;
+namespace Zenigata\Http\Router;
 
 use InvalidArgumentException;
 use RuntimeException;
@@ -21,12 +21,12 @@ use function method_exists;
 use function sprintf;
 
 /**
- * Implementation of {@see Zenigata\Http\Handler\HandlerResolverInterface}.
+ * Implementation of {@see Zenigata\Http\Router\HandlerResolverInterface}.
  * 
  * Resolves handler definitions into a PSR-15 request handler.
  *
  * It supports container identifiers, callables, controller as [class, method] pairs,
- * or instances of {@see RequestHandlerInterface}.
+ * or instances of {@see Psr\Http\Server\RequestHandlerInterface}.
  */
 class HandlerResolver implements HandlerResolverInterface
 {

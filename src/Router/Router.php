@@ -14,8 +14,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zenigata\Http\Error\HttpError;
 use Zenigata\Utility\Helper\ReflectionHelper;
-use Zenigata\Http\Handler\HandlerResolver;
-use Zenigata\Http\Handler\HandlerResolverInterface;
 use Zenigata\Http\Middleware\Dispatcher;
 
 use function array_map;
