@@ -56,11 +56,11 @@ class Router implements RequestHandlerInterface
     private ?FastRoute $router = null;
 
     /**
-     * Indicates if the routes are resolved to an array of route instances.
+     * List of registered routes.
      *
-     * @var bool
+     * @var RouteInterface[]
      */
-    private bool $resolved = false;
+    private array $routes = [];
 
     /**
      * Creates a new router instance. 
@@ -73,13 +73,17 @@ class Router implements RequestHandlerInterface
      * @param string|null                                    $cacheFile     FastRoute cache file path.
      */
     public function __construct(
-        private iterable $routes = [],
+        iterable $routes = [],
         private ?ContainerInterface $container = null,
         private ?HandlerResolverInterface $resolver = null,
         private string $attributeName = 'route',
         private bool $enableCache = false,
         private ?string $cacheFile = null,
-    ) {}
+    ) {
+        foreach ($routes as $route) {
+            $this->register($route);
+        }
+    }
 
     /**
      * @inheritDoc
@@ -120,6 +124,18 @@ class Router implements RequestHandlerInterface
      */
     public function register(RouteInterface|GroupInterface|string $route): void
     {
+        if (is_string($route)) {
+            $route = $this->resolveDefinition($route);
+        }
+
+        if ($route instanceof GroupInterface) {
+            foreach ($route->getRoutes() as $nested) {
+                $this->routes[] = $nested;
+            }
+
+            return;
+        }
+
         $this->routes[] = $route;
     }
 
@@ -130,10 +146,6 @@ class Router implements RequestHandlerInterface
      */
     public function getRoutes(): array
     {
-        if ($this->resolved === false) {
-            $this->resolveRoutes();
-        }
-
         return $this->routes;
     }
 
@@ -166,41 +178,13 @@ class Router implements RequestHandlerInterface
                         'middleware' => $route->getMiddleware()
                     ]
                 ),
-                $this->getRoutes()
+                $this->routes
             ),
             [
                 'cacheFile'     => $this->cacheFile ?? dirname(__DIR__, 4) . '/.router_cache.php',
                 'cacheDisabled' => $this->enableCache === false,
             ]
         );
-    }
-
-    /**
-     * Flattens all registered routes and groups into a single array
-     * of {@see Zenigata\Http\Router\RouteInterface} instances.
-     */
-    private function resolveRoutes(): void
-    {
-        $resolved = [];
-
-        foreach ($this->routes as $route) {
-            if (is_string($route)) {
-                $route = $this->resolveDefinition($route);
-            }
-
-            if ($route instanceof GroupInterface) {
-                foreach ($route->getRoutes() as $nested) {
-                    $resolved[] = $nested;
-                }
-
-                continue;
-            }
-
-            $resolved[] = $route;
-        }
-
-        $this->routes = $resolved;
-        $this->resolved = true;
     }
 
     /**
