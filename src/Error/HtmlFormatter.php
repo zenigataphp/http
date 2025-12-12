@@ -13,9 +13,7 @@ use function implode;
 use function nl2br;
 
 /**
- * Formats errors into an HTML representation.
- *
- * Provides a minimal HTML template suitable for browser responses.
+ * Formats errors into a simple HTML representation.
  */
 final class HtmlFormatter implements FormatterInterface
 {

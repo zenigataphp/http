@@ -16,9 +16,9 @@ use function sprintf;
 use function str_contains;
 
 /**
- * Implementation of {@see Zenigata\Framework\ErrorHandling\ErrorHandlerInterface}.
+ * Implementation of {@see Zenigata\Http\Error\ErrorHandlerInterface}.
  *
- * Translates exceptions into PSR-7 responses using registered formatter instances.
+ * Converts exceptions into PSR-7 responses using registered formatter instances.
  * Supports configurable logging, debug mode, and automatic content negotiation.
  */
 class ErrorHandler implements ErrorHandlerInterface

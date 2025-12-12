@@ -14,8 +14,6 @@ use function implode;
 
 /**
  * Formats errors into a simple XML representation.
- *
- * Produces an XML document describing the error message and code.
  */
 final class XmlFormatter implements FormatterInterface
 {

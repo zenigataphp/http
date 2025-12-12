@@ -7,10 +7,9 @@ namespace Zenigata\Http\Error;
 use Throwable;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Zenigata\Http\ErrorInterface;
 
 /**
- * Defines a contract for handling errors within an HTTP context.
+ * Defines a contract for handling errors in an HTTP context.
  *
  * Implementations are responsible for converting exceptions into PSR-7 responses,
  * using one or more formatter instances to serialize error details.
@@ -27,7 +26,7 @@ interface ErrorHandlerInterface
     public function addFormatter(FormatterInterface $formatter): void;
 
     /**
-     * Converts an exception into a PSR-7 response.
+     * Handles an exception raised during the HTTP lifecycle.
      *
      * @param ServerRequestInterface $request The incoming request that triggered the error.
      * @param Throwable              $error   The caught exception or error.

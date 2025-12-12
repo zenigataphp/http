@@ -10,8 +10,6 @@ use function sprintf;
 
 /**
  * Formats errors into a plain text representation.
- *
- * Provides a concise text output suitable for CLI or plain HTTP responses.
  */
 final class TextFormatter implements FormatterInterface
 {

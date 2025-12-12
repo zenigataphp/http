@@ -14,8 +14,6 @@ use function json_encode;
 
 /**
  * Formats errors into a JSON object representation.
- *
- * Produces a JSON structure with the error message and code.
  */
 final class JsonFormatter implements FormatterInterface
 {
