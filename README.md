@@ -2,11 +2,9 @@
 
 > ⚠️ This project is in an early development stage. Feedback and contributions are welcome!
 
-Lightweight, PSR-15 compliant HTTP runner and middleware framework built for composability and simplicity.
+A lightweight, PSR-compliant HTTP framework for PHP 8.2+ built for flexibility and simplicity.
 
-**Zenigata HTTP** provides a clean abstraction for handling the **full HTTP lifecycle**: **request initialization**, **middleware dispatching**, **routing**, and **response emission**, while offering a **modular architecture** that allows you to freely combine components, and being fully **Dependency Injection friendly**
-
-Zenigata HTTP draws inspiration from the modern PHP [interoperability standards](https://www.php-fig.org/psr/) and aims to provide a cohesive, framework-agnostic HTTP kernel for PHP developers.
+Built around standard interfaces and a composable architecture, it gives you full control over routing, middleware, request handling, and error responses — with sensible defaults that work out of the box.
 
 ## Requirements
 
@@ -27,213 +25,244 @@ composer require zenigata/http
 
 ## Overview
 
-[`HttpRunner`](./src/HttpRunner.php).
+### Application
 
-- Orchestrates the PSR-15 HTTP flow, serving as the "engine" of the HTTP application.
-- Combines:
-    - A `RequestHandlerInterface` (e.g., `Router` or `Dispatcher`) that handles the **main request logic** and produces a PSR-7 response.
-    - A `ServerRequestInterface` [`Initializer`](./src/Initializer/Initializer.php) which builds the initial `ServerRequestInterface` from **PHP globals** or **provided arrays**.
-    - A `ResponseInterface` [`Emitter`](./src/Response/Emitter.php) responsible for sending headers and body to the client according to PSR-7.
-    - An [`ErrorHandler`](./src/Error/ErrorHandler.php) that logs exceptions, formats error responses, and includes debug info when enabled.
+[`Application`](./src/Application.php) is the main entry point of the framework. It orchestrates the **full HTTP request lifecycle** and provides a **centralized API** to interact with all internal components: registering routes, middleware, and strategies, loading definitions from configuration files, propagating shared state such as a PSR-11 container or debug mode, and running or emitting responses.
 
-[`Router`](./src/Router/Router.php)
+### Routing
 
-- PSR-15 compatible handler built on top of on [FastRoute](https://github.com/nikic/FastRoute).
-- Supports **route groups**, **middleware stacks**, and **container-based resolution**.
-- Uses a [`HandlerResolver`](./src/Router/HandlerResolver.php) to convert route definitions into executable PSR-15 handlers.
-- By default, accepts the following handler types:
-  - **String identifiers**, resolved via container or reflection.
-  - **Callables**, with signature `function(ServerRequestInterface $request): ResponseInterface`.
-  - **[Class, method]** controller pairs
-  - **Instances** of `RequestHandlerInterface`
+- [`Router`](./src/Routing/Router.php) matches incoming requests to registered routes using [FastRoute](https://github.com/nikic/FastRoute) under the hood. It supports individual routes, route groups with shared prefixes and middleware, and lazy resolution of string-based route definitions from a container or via reflection.
+- [`Route`](./src/Routing/Route.php) provides a fluent API for defining routes for any HTTP method (`get`, `post`, `put`, `patch`, `delete`, `head`, `options`), as well as helpers for multiple methods (`map`) and catch-all definitions (`any`). Routes can be grouped with a shared prefix and middleware stack via `Route::group()`.
 
-[`Dispatcher`](./src/Middleware/Dispatcher.php)
+### Middleware
 
-- A PSR-15 compatible middleware dispatcher.
-- Executes middleware **sequentially**, passing the request through each layer until it reaches the **final handler**.
-- If no final handler is provided it throws an `HttpError` with status code **404 (Not Found)**.
+- [`MiddlewareDispatcher`](./src/Middleware/MiddlewareDispatcher.php) executes a stack of PSR-15 middleware sequentially and then delegates the request to the final handler. Middleware can be provided as instances or string identifiers resolved at dispatch time.
+- [`BodyParserMiddleware`](./src/Middleware/BodyParserMiddleware.php) parses the incoming request body based on the `Content-Type` header and attaches the parsed data to the request. Ships with built-in parsers for **JSON**, **XML**, and **URL-encoded** bodies, all replaceable or extendable.
 
-[`RouterMiddleware`](./src/Middleware/RouterMiddleware.php)
+### Handling
 
-- Middleware wrapper for the `Router`.
-- Allows routing to be part of a larger middleware stack.
+[`RouteHandler`](./src/Handling/RouteHandler.php) invokes the matched handler and converts its return value into a PSR-7 response via a **response strategy** selected by the `Accept` header. Handlers are normalized into callables and invoked with route parameters as named arguments — both steps customizable via `HandlerNormalizerInterface` and `HandlerInvokerInterface`. Ships with strategies for **HTTP redirects**, **file downloads**, **JSON**, **XML**, and **plain text** (used by default).
 
-[`ResponseBuilder`](./src/Response/ResponseBuilder.php)
+### Error
 
-- Automatically detect PSR-17 factories using the `Factory` utility from [`middleware/utils`](https://github.com/middlewares/utils?tab=readme-ov-file#factory).
-- Provides convenience methods to build PSR-7 `ResponseInterface` instances (e.g. `jsonResponse`, `htmlResponse`, `fileResponse`, etc).
-- Can be reused through the [`ResponseBuilderTrait`](./src/Response/ResponseBuilderTrait.php) to share response-building logic across handlers.
+[`ErrorHandler`](./src/Error/ErrorHandler.php) catches any `Throwable` thrown during the request lifecycle and converts it into a PSR-7 error response via an **error strategy** selected by the `Accept` header. Supports an optional **PSR-3 logger** and debug mode for full exception details. Ships with strategies for **HTML**, **JSON**, **XML**, and **plain text** (used by default).
 
-[`ErrorHandler`](./src/Error/ErrorHandler.php)
-
-- Optionally accepts a `Psr\Log\LoggerInterface` to log thrown exceptions.
-- Supports custom **error formatters** to convert exceptions into response bodies.
-- When `debug` mode is enabled, the response will include **stack trace** and **exception details**.
-
-[`HttpError`](./src/Error/HttpError.php)
-
-- Represents an **HTTP-specific exception** that maps directly to a **status code**.
+[`HttpError`](./src/Error/HttpError.php) represents an HTTP-specific exception that maps directly to a status code (4xx–5xx):
 - Validates that the code is within the **4xx–5xx** range.
 - Automatically assigns the standard **reason phrase** if no message is provided.  
-- Stores the original `ServerRequestInterface` that triggered the error, accessible via `getRequest()`.  
+- Stores the original `ServerRequestInterface` that caused the error, accessible via `getRequest()`. 
+
+### Runtime
+
+- [`RequestInitializer`](./src/Runtime/RequestInitializer.php) builds a PSR-7 `ServerRequestInterface` from PHP superglobals, normalizing headers, cookies, uploaded files, and protocol version.
+- [`ResponseEmitter`](./src/Runtime/ResponseEmitter.php) sends the final PSR-7 response to the client by emitting the body in streaming chunks — minimizing memory usage for large payloads.
+- [`HttpRunner`](./src/Runtime/HttpRunner.php) ties initialization and emission together: it creates the server request if none is provided, passes it to the application, and emits the resulting response.
 
 ## Usage
 
-### Example 1 — Using the Router as the main handler
+### Minimal Setup
 
 ```php
-use Laminas\Diactoros\Response\HtmlResponse;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Zenigata\Http\HttpRunner;
-use Zenigata\Http\Router\Router;
-use Zenigata\Http\Router\Route;
+use Zenigata\Http\Application;
+use Zenigata\Http\Routing\Route;
 
-$router = new Router([
-    Route::get('/', function (ServerRequestInterface $request): ResponseInterface {
-        return new HtmlResponse('Hello World');
-    }),
-    Route::get('/hello/{name}', function (ServerRequestInterface $request): ResponseInterface {
-        return new HtmlResponse("Hello {$request->getAttribute('name', 'World')}");
-    }),
-]);
+$app = new Application();
 
-$runner = new HttpRunner($router);
-$runner->run();
+$app->addRoute(Route::get('/hello', fn() => 'Hello, world!'));
+
+$app->run();
 ```
 
-This example registers two simple routes (`/` and `/hello/{name}`), automatically initializes the request, handles it through the router, and emits the final response to the client.
+The handler can return any value. `RouteHandler` picks the right response strategy based on the `Accept` header, falling back to plain text if none matches.
 
-### Example 2 — Using the Middleware Dispatcher
+### Routes
 
 ```php
-use Zenigata\Http\HttpRunner;
-use Zenigata\Http\Middleware\Dispatcher;
-use Zenigata\Http\Middleware\JsonPayloadMiddleware;
-use Zenigata\Http\Middleware\UrlEncodePayloadMiddleware;
-use Zenigata\Http\Router\Router;
+use Zenigata\Http\Routing\Route;
 
-$dispatcher = new Dispatcher(
-    middleware: [
-        new JsonPayloadMiddleware(),
-        new UrlEncodePayloadMiddleware(),
+$app->addRoute(Route::get('/users', [UserController::class, 'index']));
+$app->addRoute(Route::post('/users', [UserController::class, 'store']));
+$app->addRoute(Route::delete('/users/{id}', [UserController::class, 'destroy']));
+
+// Multiple methods on the same path
+$app->addRoute(Route::map(['GET', 'POST'], '/contact', ContactController::class));
+
+// All HTTP methods
+$app->addRoute(Route::any('/catch-all', FallbackHandler::class));
+
+// Route groups with shared prefix and middleware
+$app->addRoute(Route::group('/api', fn() => [
+        Route::get('/users', [UserController::class, 'index']),
+        Route::post('/users', [UserController::class, 'store']),
     ],
-    handler: new Router($routes)
+    middleware: [AuthMiddleware::class])
 );
-
-$runner = new HttpRunner($dispatcher);
-$runner->run();
 ```
 
-The `Dispatcher` executes middleware in **registration order** ([FIFO](https://en.wikipedia.org/wiki/FIFO_(computing_and_electronics))), each having the opportunity to process or modify the request and response before passing control to the next one.
+### Handlers
 
-Once all middleware are processed, the **final handler handles the request** and produces a response (in this case, the `Router`).
-
-### Example 3 — Using the Router as Middleware
-
-You can easily use the router as middleware using the built-in `RouterMiddleware`:
+Handlers can be defined in several ways:
 
 ```php
-use Zenigata\Http\HttpRunner;
-use Zenigata\Http\Middleware\Dispatcher;
-use Zenigata\Http\Middleware\JsonPayloadMiddleware;
-use Zenigata\Http\Middleware\UrlEncodePayloadMiddleware;
-use Zenigata\Http\Router\Router;
+// Closure
+Route::get('/hello', fn() => 'Hello, world!');
 
-$dispatcher = new Dispatcher(
-    middleware: [
-        new JsonPayloadMiddleware(),
-        new Router($routes),
-        new CustomPostRouterMiddleware(),
-    ],
-    // If no final handler is defined, the Dispatcher will throw an HttpError (404 Not Found).
-);
+// Invokable class
+Route::get('/hello', InvokableHandler::class);
 
-$runner = new HttpRunner($dispatcher);
-$runner->run();
+// [Class, method] pair
+Route::get('/users', [UserController::class, 'index']);
+
+// PSR-15 RequestHandlerInterface
+Route::get('/users', Psr15Handler::class);
 ```
 
-The `RouterMiddleware` behaves exactly like the `Router`, but can be placed **anywhere** within a middleware stack.
-It supports the same constructor arguments and methods as the `Router`, including **route registration**, **container-based resolution**, and **caching**.
+When defined as strings, handlers are resolved from the container if available, or instantiated via reflection otherwise (the class must have no required constructor parameters).
 
-### Example 4 — Using a PSR-11 Container
-
-Zenigata HTTP can integrate with any [PSR-11](https://www.php-fig.org/psr/psr-11/) container to lazily resolve middleware, handlers, or routes declared by class name or service ID.
-
-In this example, the container will instantiate middleware and handlers automatically when needed.
+Route parameters are spread to the handler as **named arguments**, so parameter names must match the route placeholders:
 
 ```php
-use DI\Container;
-use Psr\Container\ContainerInterface;
-use Zenigata\Http\HttpRunner;
-use Zenigata\Http\Middleware\Dispatcher;
-use Zenigata\Http\Router\Route;
-use Zenigata\Http\Router\Router;
-
-// Example with PHP-DI
-$container = new Container();
-
-$container->set(JsonPayloadMiddleware::class, new JsonPayloadMiddleware());
-$container->set(UrlEncodePayloadMiddleware::class, new UrlEncodePayloadMiddleware());
-
-$container->set('routes', [
-    Route::get('/', HomeHandler::class),
-    Route::get('/hello/{name}', HelloHandler::class),
-]);
-
-$container->set(Router::class, function (ContainerInterface $container) {
-    return new Router(
-        routes:    $container->get('routes'),
-        container: $container
-    );
+Route::get('/users/{id}', function (ServerRequestInterface $request, string $id) {
+    return ['id' => $id];
 });
-
-$dispatcher = new Dispatcher(
-    middleware: [
-        JsonPayloadMiddleware::class,
-        UrlEncodePayloadMiddleware::class,
-    ],
-    handler:   Router::class,
-    container: $container
-);
-
-$runner = new HttpRunner($dispatcher);
-$runner->run();
 ```
 
-When a middleware or handler is declared as a **string (class name or service identifier)**, the dispatcher and router will ask the **container** to resolve it.
-If the container does not contain the entry, Zenigata HTTP falls back to **reflection-based instantiation** via `ReflectionHelper`. This mechanism only works for classes that have **no required constructor dependencies**.
-
-This approach allows **lazy loading**, **dependency injection**, and **testability** while keeping middleware configuration declarative.
-
-## Error Handling
-
-The runner delegates any uncaught exception or error to an `ErrorHandlerInterface`, which must return a valid `ResponseInterface`.
-
-If no error handler is explicitly provided, a default [`ErrorHandler`](./src/Error/ErrorHandler.php) instance is **automatically created**.
+### Middleware
 
 ```php
-$runner = new HttpRunner($router, debug: true);
+use Zenigata\Http\Middleware\BodyParserMiddleware;
+
+// Global middleware — applied to every request, in FIFO order
+$app->addMiddleware(new BodyParserMiddleware());
+$app->addMiddleware(AuthMiddleware::class); // resolved from container or reflection
+
+// Route-level middleware
+$app->addRoute(Route::get('/admin', AdminController::class, middleware: [
+    AuthMiddleware::class,
+    RateLimitMiddleware::class,
+]));
 ```
 
-When `debug` mode is enabled, the default error handler will include **detailed exception information** (stack traces, messages, etc.) in the response body, useful for development and testing.
+### Redirects
 
-You can provide your own implementation by passing it to the constructor:
+Return an `HttpRedirect` from any handler:
 
 ```php
-$runner = new HttpRunner($router, errorHandler: new CustomErrorHandler());
+use Zenigata\Http\Handling\Strategy\HttpRedirect;
+
+Route::get('/old-path', fn() => new HttpRedirect('/new-path', 301));
+```
+
+### File Downloads
+
+Return a `SplFileInfo` from any handler:
+
+```php
+Route::get('/download', fn() => new SplFileInfo('/path/to/file.pdf'));
+```
+
+### Error Handling
+
+Any uncaught exception is passed to `ErrorHandler`, which selects the right strategy based on the `Accept` header. In debug mode, responses include the full exception details:
+
+```php
+$app = new Application(debug: true);
+```
+
+Attach a PSR-3 logger to record errors alongside request context:
+
+```php
+$app = new Application(errorHandler: new ErrorHandler(logger: $logger));
+```
+
+Throw an `HttpError` to produce a specific HTTP error response:
+
+```php
+use Zenigata\Http\Error\HttpError;
+
+throw new HttpError($request, 404);
+throw new HttpError($request, 403, 'Access denied.');
+```
+
+### Container Integration
+
+Pass any PSR-11 container to resolve middleware, handlers, and strategies by service ID:
+
+```php
+$app = new Application(container: $container);
+
+$app->addMiddleware('app.middleware.auth');
+$app->addRoute(Route::get('/users', 'app.handler.users'));
+```
+
+The container is automatically propagated to all internal components that support it.
+
+### File-based Configuration
+
+Split routes, middleware, and strategies across separate configuration files. Each file must return an **array** of definitions:
+
+```php
+// config/routes.php
+use Zenigata\Http\Routing\Route;
+
+return [
+    Route::get('/users', [UserController::class, 'index']),
+    Route::post('/users', [UserController::class, 'store']),
+    Route::group(
+        prefix: '/admin',
+        routes: fn() => [Route::get('/dashboard', [AdminController::class, 'dashboard'])],
+        middleware: [AuthMiddleware::class]
+    ),
+];
+```
+
+```php
+// config/middleware.php
+return [
+    \App\Middleware\CorsMiddleware::class,
+    \App\Middleware\BodyParserMiddleware::class,
+];
+```
+
+Load them at bootstrap:
+
+```php
+$app = new Application();
+
+$app->loadRoutes(__DIR__ . '/config/routes.php')
+    ->loadMiddleware(__DIR__ . '/config/middleware.php')
+    ->loadErrorStrategies(__DIR__ . '/config/error_strategies.php')
+    ->loadResponseStrategies(__DIR__ . '/config/response_strategies.php')
+    ->run();
 ```
 
 ## Extensibility
 
-Zenigata HTTP is designed for flexibility and extensibility:
+Zenigata HTTP is designed for flexibility and extensibility. Every internal component can be replaced by passing a custom implementation to the constructor:
 
-- Implement your own `InitializerInterface` to create PSR-7 requests from non-standard sources (e.g. CLI, tests, or custom environments).
-- Implement a custom `EmitterInterface` to emit responses differently (e.g. buffered output, async streaming).
-- Integrate any PSR-15 compatible middleware, router, or handler.
-- Plug in a PSR-11 container to lazily resolve handlers and middleware by service ID.
-- Extend or replace the `ErrorHandlerInterface` to customize error rendering, logging, or formatting.
-- Customize how the `Router` resolves handlers by providing your own implementations of `HandlerResolverInterface`.
+```php
+$app = new Application(
+    dispatcher:   new MyMiddlewareDispatcher(),
+    router:       new MyRouter(),
+    routeHandler: new MyRouteHandler(),
+    errorHandler: new MyErrorHandler(),
+);
+```
+
+Custom response and error strategies can be registered at any time:
+
+```php
+$app->addResponseStrategy(new CsvResponseStrategy());
+$app->addErrorStrategy(new SentryErrorStrategy());
+```
+
+as well as set a default response strategy:
+```php
+$app->setDefaultResponseStrategy('json');
+$app->setDefaultErrorStrategy('json');
+```
+
+You can also extend `Application` directly and override any `protected` method to customize specific behaviors without replacing entire components.
 
 ## Contributing
 
