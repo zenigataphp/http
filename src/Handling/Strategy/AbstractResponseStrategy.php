@@ -58,7 +58,7 @@ abstract class AbstractResponseStrategy implements ResponseStrategyInterface, Re
     {
         if ($this->name === '') {
             throw new LogicException(sprintf(
-                'Response strategy "%s" must define a name.',
+                "Response strategy '%s' must define a name.",
                 static::class
             ));
         }

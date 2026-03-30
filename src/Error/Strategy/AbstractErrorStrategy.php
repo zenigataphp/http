@@ -68,7 +68,7 @@ abstract class AbstractErrorStrategy implements ErrorStrategyInterface, DebugAwa
     {
         if ($this->name === '') {
             throw new LogicException(sprintf(
-                'Error strategy "%s" must define a name.',
+                "Error strategy '%s' must define a name.",
                 static::class
             ));
         }
