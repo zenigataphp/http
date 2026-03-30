@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Handling\Strategy;
 
-use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
 
+use function get_debug_type;
 use function implode;
 use function in_array;
 use function sprintf;
@@ -42,14 +43,20 @@ class HttpRedirectResponseStrategy extends AbstractResponseStrategy
     /**
      * @inheritDoc
      * 
-     * @param HttpRedirect $data
-     * 
-     * @throws InvalidArgumentException If status code is not a redirect.
+     * @throws RuntimeException If status code is not a redirect, or data type is not supported.
      */
     public function respond(ServerRequestInterface $request, mixed $data): ResponseInterface
     {
+        if (!$data instanceof HttpRedirect) {
+            throw new RuntimeException(sprintf(
+                "Unsupported data type. Expected '%s', got '%s'.",
+                HttpRedirect::class,
+                get_debug_type($data)
+            ));
+        }
+
         if (!in_array($data->status, self::HTTP_REDIRECT_CODES, true)) {
-            throw new InvalidArgumentException(sprintf(
+            throw new RuntimeException(sprintf(
                 'Invalid redirect status code: %s. Allowed values are: %s.',
                 $data->status,
                 implode(',', self::HTTP_REDIRECT_CODES)

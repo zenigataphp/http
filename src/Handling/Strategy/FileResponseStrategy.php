@@ -14,6 +14,7 @@ use const FILEINFO_MIME_TYPE;
 
 use function filesize;
 use function fopen;
+use function get_debug_type;
 use function is_readable;
 use function rawurlencode;
 use function sprintf;
@@ -51,12 +52,18 @@ class FileResponseStrategy extends AbstractResponseStrategy
     /**
      * @inheritDoc
      * 
-     * @param SplFileInfo $data
-     * 
-     * @throws RuntimeException If the file is not readable or missing.
+     * @throws RuntimeException If the file is not readable or missing, or data type is not supported.
      */
     public function respond(ServerRequestInterface $request, mixed $data): ResponseInterface
     {
+        if (!$data instanceof SplFileInfo) {
+            throw new RuntimeException(sprintf(
+                "Unsupported data type. Expected '%s', got '%s'.",
+                SplFileInfo::class,
+                get_debug_type($data)
+            ));
+        }
+
         $path = $data->getPathname();
 
         if (!is_readable($path)) {
