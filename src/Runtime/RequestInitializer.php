@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Request;
+namespace Zenigata\Http\Runtime;
 
-use Throwable;
-use Middlewares\Utils\Factory;
+use Http\Discovery\Psr17FactoryDiscovery;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -13,6 +12,7 @@ use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
+use Throwable;
 
 use const UPLOAD_ERR_NO_FILE;
 use const UPLOAD_ERR_OK;
@@ -35,18 +35,16 @@ use function ucwords;
 use function urldecode;
 
 /**
- * Implementation of {@see Zenigata\Http\Request\InitializerInterface}.
- *
- * Builds the initial PSR-7 server request that drives the HTTP lifecycle.
+ * Implementation of {@see Zenigata\Http\Runtime\RequestInitializerInterface}.
  */
-class Initializer implements InitializerInterface
+class RequestInitializer implements RequestInitializerInterface
 {
     /**
      * List of server variables that should be treated as content headers.
      * 
-     * @var string[]
+     * @var list<string>
      */
-    private const ALLOWED_CONTENT_HEADERS = [
+    public const ALLOWED_CONTENT_HEADERS = [
         'CONTENT_LENGTH',
         'CONTENT_MD5',
         'CONTENT_TYPE',
@@ -55,9 +53,9 @@ class Initializer implements InitializerInterface
     /**
      * Default blacklist of headers to exclude for security reasons.
      * 
-     * @var string[]
+     * @var list<string>
      */
-    private const BLACKLISTED_HEADERS = [
+    public const BLACKLISTED_HEADERS = [
         'HTTP_PROXY', // https://httpoxy.org
     ];
     
@@ -75,16 +73,16 @@ class Initializer implements InitializerInterface
         private ?UploadedFileFactoryInterface $uploadedFileFactory = null,
         private ?UriFactoryInterface $uriFactory = null
     ) {
-        $this->serverRequestFactory ??= Factory::getServerRequestFactory();
-        $this->streamFactory        ??= Factory::getStreamFactory();
-        $this->uploadedFileFactory  ??= Factory::getUploadedFileFactory();
-        $this->uriFactory           ??= Factory::getUriFactory();
+        $this->serverRequestFactory ??= Psr17FactoryDiscovery::findServerRequestFactory();
+        $this->streamFactory        ??= Psr17FactoryDiscovery::findStreamFactory();
+        $this->uploadedFileFactory  ??= Psr17FactoryDiscovery::findUploadedFileFactory();
+        $this->uriFactory           ??= Psr17FactoryDiscovery::findUriFactory();
     }
 
     /**
      * @inheritDoc
      */
-    public function initialServerRequest(
+    public function initialize(
         ?array $server = null,
         ?array $get    = null,
         ?array $post   = null,
@@ -284,8 +282,8 @@ class Initializer implements InitializerInterface
      */
     private function createUploadedFile(array $file): UploadedFileInterface
     {
-        $error = $file['error'] ?? UPLOAD_ERR_NO_FILE;
-        $tmpName  = $file['tmp_name'] ?? null;
+        $error   = $file['error'] ?? UPLOAD_ERR_NO_FILE;
+        $tmpName = $file['tmp_name'] ?? null;
 
         if ($error === UPLOAD_ERR_OK && $tmpName !== null && $this->isUploadedFile($tmpName)) {
             try {
@@ -337,7 +335,7 @@ class Initializer implements InitializerInterface
             $uri = $uri->withPort((int) $server['SERVER_PORT']);
         }
 
-        // Path & Query
+        // Path + Query
         if (isset($server['REQUEST_URI'])) {
             $parts = explode('?', $server['REQUEST_URI'], 2);
             $path  = $parts[0];

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zenigata\Http\Response;
+namespace Zenigata\Http\Runtime;
 
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
@@ -20,42 +20,33 @@ use function strlen;
 use function strtolower;
 
 /**
- * Implementation of {@see Zenigata\Http\Response\EmitterInterface}.
- *
- * Emits a PSR-7 response to the current SAPI environment using streaming,
- * minimizing memory usage and handling large payloads gracefully.
+ * Implementation of {@see Zenigata\Http\Runtime\ResponseEmitterInterface}.
+ * 
+ * Emits using streaming, minimizing memory usage and handling large payloads.
  */
-class Emitter implements EmitterInterface
+class ResponseEmitter implements ResponseEmitterInterface
 {
     /**
      * Status codes that never include a body.
      *
-     * @var int[]
+     * @var list<int>
      */
     public const CODES_WITHOUT_BODY = [204, 205, 304];
-
-    /**
-     * Maximum bytes emitted per iteration to balance memory and responsiveness.
-     * 
-     * @var int
-     */
-    private int $bufferLength;
 
     /**
      * Creates a new emitter instance.
      *
      * @param int $bufferLength The maximum number of bytes to read and emit per iteration.
      */
-    public function __construct(int $bufferLength = 8192) // 8 KB
-    {
-        if ($bufferLength < 1) {
+    public function __construct(
+        private int $bufferLength = 8192, // 8 KB
+    ) {
+        if ($this->bufferLength < 1) {
             throw new InvalidArgumentException(sprintf(
                 'Buffer length must be greater than zero; received %d.',
-                $bufferLength
+                $this->bufferLength
             ));
         }
-
-        $this->bufferLength = $bufferLength;
     }
 
     /**
@@ -142,14 +133,14 @@ class Emitter implements EmitterInterface
         $code = $response->getStatusCode();
 
         $this->sendHeader(
-            header: sprintf(
+            header:  sprintf(
                 'HTTP/%s %d %s',
                 $response->getProtocolVersion(),
                 $code,
                 $response->getReasonPhrase()
             ),
             replace: true,
-            code: $code
+            code:    $code
         );
     }
 

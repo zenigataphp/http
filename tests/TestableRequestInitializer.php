@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test;
 
-use Zenigata\Http\Request\Initializer;
+use Zenigata\Http\Runtime\RequestInitializer;
 
 /**
- * Test double for {@see Zenigata\Http\Request\Initializer}.
+ * Testable implementation of {@see Zenigata\Http\Runtime\RequestInitializer}.
  * 
  * Simulates file upload behavior for predictable request handling.
  */
-final class TestableInitializer extends Initializer
+final class TestableRequestInitializer extends RequestInitializer
 {
     /**
-     * @inheritDoc
-     * 
      * Overridden for controlled testing behavior.
      */
     protected function isUploadedFile(string $filename): bool
