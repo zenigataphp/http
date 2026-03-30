@@ -19,16 +19,14 @@
         }
     },
     "require": {
-        "middlewares/payload": "^3.1",
-        "middlewares/utils": "^4.0",
         "nikic/fast-route": "^1.3",
         "php": "^8.2 || ^8.3 || ^8.4",
+        "php-http/discovery": "^1.20",
         "psr/http-factory": "^1.1",
         "psr/http-server-middleware": "^1.0",
-        "zenigata/utility": "^0.1"
+        "zenigata/utility": "^0.2"
     },
     "require-dev": {
-        "mikey179/vfsstream": "^1.6",
         "nyholm/psr7": "^1.8",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.5 || ^12.0"
@@ -44,8 +42,11 @@
     "suggest": {
         "guzzlehttp/psr7": "PSR-7 and PSR-17 message implementation.",
         "laminas/laminas-diactoros": "PSR-7 and PSR-17 message implementation.",
-        "nyholm/psr7": "Lightweight PSR-7 and PSR-17 implementation.",
-        "slim/psr7": "Slim Framework PSR-7 implementation.",
-        "sunrise/http-message": "Lightweight PSR-7 message implementation."
+        "nyholm/psr7": "Lightweight PSR-7 and PSR-17 implementation."
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     }
 }
