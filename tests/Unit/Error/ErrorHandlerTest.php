@@ -4,188 +4,183 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test\Unit\Error;
 
-use LogicException;
-use RuntimeException;
-use Throwable;
+use Exception;
+use InvalidArgumentException;
 use Nyholm\Psr7\ServerRequest;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Psr\Http\Message\ResponseInterface;
+use PHPUnit\Framework\TestCase;
 use Zenigata\Http\Error\ErrorHandler;
 use Zenigata\Http\Error\HttpError;
-use Zenigata\Http\Test\FakeFormatter;
-use Zenigata\Utility\Psr\FakeLogger;
-
-use function json_encode;
+use Zenigata\Http\Test\FakeErrorStrategy;
+use Zenigata\Utility\Testing\FakeContainer;
+use Zenigata\Utility\Testing\FakeLogger;
 
 /**
- * Unit test for {@see Zenigata\Cli\Error\ErrorHandler}.
+ * Unit test for {@see Zenigata\Http\Error\ErrorHandler}.
  *
  * Covered cases:
- * 
- * - Registers valid formatters and rejects empty content types.
- * - Selects correct formatter based on Accept header.
- * - Falls back to default formatters when none registered.
- * - Handles both generic and HTTP-specific errors.
- * - Applies debug mode flag correctly.
- * - Produces valid PSR-7 responses with expected status, headers, and body.
- * - Logs contextual information if a logger is present.
- * - Edge cases: missing Accept header, empty formatters, invalid formatter.
+ *
+ * - Delegate to the first matching strategy.
+ * - Fall back to the default strategy when no strategy supports the error.
+ * - Log the error message when a logger is provided.
+ * - Skip logging when no logger is provided.
+ * - Register a strategy instance and make it available via getStrategies().
+ * - Register a strategy resolvable from container or reflection.
+ * - Throw en exception when a string strategy resolves to the wrong type.
+ * - Configure a different default strategy.
+ * - Throw en exception when the default strategy is not in the registered list.
+ * - Use the request from HttpError when it is passed instead of the original request.
  */
 #[CoversClass(ErrorHandler::class)]
 final class ErrorHandlerTest extends TestCase
 {
-    private RuntimeException $error;
+    private Exception $error;
+    
+    private ServerRequest $request;
 
     /**
      * @inheritDoc
      */
     protected function setUp(): void
     {
-        $this->error = new RuntimeException('Custom error message');
+        $this->error   = new Exception('something went wrong');
+        $this->request = new ServerRequest('GET', '/');
     }
 
-    public function testAddFormatterRejectsEmptyContentTypes(): void
+    public function testHandleUsesMatchingStrategy(): void
     {
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('must declare at least one supported content type');
+        $strategy = new FakeErrorStrategy(supports: true);
 
-        $invalidFormatter = new FakeFormatter(
-            types:  [],
-            format: fn() => ''
+        $handler = new ErrorHandler(
+            strategies: [$strategy],
+            defaultStrategy: 'fake'
         );
 
-        new ErrorHandler([$invalidFormatter]);
+        $handler->handle($this->request, $this->error);
+
+        $this->assertTrue($strategy->isInvoked());
     }
 
-    public function testHandleWithCustomFormatterAndDebugOff(): void
+    public function testHandleUsesDefaultStrategy(): void
     {
-        $formatter = new FakeFormatter(
-            types:  ['application/json'],
-            format: function (Throwable $error) {
-                return json_encode(['error' => $error->getMessage()]);
-            }
+        $nonMatching     = new FakeErrorStrategy('other', supports: false);
+        $defaultStrategy = new FakeErrorStrategy('default', supports: false);
+
+        $handler = new ErrorHandler(
+            strategies: [$nonMatching, $defaultStrategy],
+            defaultStrategy: 'default',
         );
 
-        $request = new ServerRequest('GET', '/', ['Accept' => 'application/json']);
-        $handler = new ErrorHandler([$formatter]);
+        $handler->handle($this->request, $this->error);
 
-        $response = $handler->handle($request, $this->error, debug: false);
-
-        $this->assertInstanceOf(ResponseInterface::class, $response);
-        $this->assertSame(500, $response->getStatusCode());
-        $this->assertSame('application/json', $response->getHeaderLine('Content-Type'));
-        $this->assertStringContainsString('Internal Server Error', (string) $response->getBody());
+        $this->assertFalse($nonMatching->isInvoked());
+        $this->assertTrue($defaultStrategy->isInvoked());
     }
 
-    public function testHandleWithDebugTruePreservesOriginalError(): void
+    public function testHandleLogsError(): void
     {
-        $formatter = new FakeFormatter(
-            types:  ['text/plain'],
-            format: function (Throwable $error, bool $debug) {
-                return $debug === true
-                    ? 'DEBUG: ' . $error->getMessage()
-                    : 'NO_DEBUG';
-            }
-        ); 
+        $logger   = new FakeLogger();
+        $strategy = new FakeErrorStrategy();
 
-        $request = new ServerRequest('GET', '/', ['Accept' => 'text/plain']);
-        $handler = new ErrorHandler([$formatter]);
-
-        $response = $handler->handle($request, $this->error, debug: true);
-
-        $this->assertSame(500, $response->getStatusCode());
-        $this->assertStringContainsString('DEBUG: Custom error message', (string) $response->getBody());
-    }
-
-    public function testHandleUsesHttpErrorRequestAndCode(): void
-    {
-        $formatter = new FakeFormatter(
-            types:  ['application/json'],
-            format: fn() => 'ok'
+        $handler = new ErrorHandler(
+            strategies: [$strategy],
+            defaultStrategy: 'fake',
         );
 
-        $httpError = new HttpError(new ServerRequest('POST', '/hello'), 404);
-        $handler = new ErrorHandler([$formatter]);
+        $handler->setLogger($logger);
+        $handler->handle($this->request, $this->error);
 
-        $response = $handler->handle(new ServerRequest('GET', '/ignored'), $httpError);
-
-        $this->assertSame(404, $response->getStatusCode());
-        $this->assertSame('application/json', $response->getHeaderLine('Content-Type'));
-        $this->assertSame('ok', (string) $response->getBody());
+        $this->assertCount(1, $logger->all());
+        $this->assertStringContainsString('something went wrong', $logger->first());
     }
 
-    public function testHandleLogsErrorWhenLoggerProvided(): void
-    {
-        $formatter = new FakeFormatter(
-            types:  ['text/htm'],
-            format: fn() => '<html>Error</html>'
-        );
-
-        $logger = new FakeLogger();
-        $handler = new ErrorHandler([$formatter], logger: $logger);
-        $request = new ServerRequest('GET', '/test');
-
-        $handler->handle($request, $this->error);
-
-        $logs = $logger->all();
-
-        $this->assertNotEmpty($logs);
-        $this->assertStringContainsString('[ERROR]', $logs[0]);
-        $this->assertStringContainsString('Custom error message', $logs[0]);
-        $this->assertStringContainsString('"request_uri":"\/test"', $logs[0]);
-    }
-
-    public function testHandleFallsBackToDefaultFormatters(): void
+    public function testAddStrategy(): void
     {
         $handler = new ErrorHandler();
-        $request = new ServerRequest('GET', '/', ['Accept' => 'text/plain']);
+        $handler->addStrategy(new FakeErrorStrategy());
 
-        $response = $handler->handle($request, $this->error);
-
-        $this->assertInstanceOf(ResponseInterface::class, $response);
-        $this->assertSame(500, $response->getStatusCode());
-        $this->assertNotEmpty($response->getHeaderLine('Content-Type'));
-        $this->assertNotEmpty((string) $response->getBody());
+        $this->assertArrayHasKey('fake', $handler->getStrategies());
     }
 
-    public function testDetectFormatterSelectsBestMatch(): void
+    public function testAddStrategyResolvesFromContainer(): void
     {
-        $jsonFormatter = new FakeFormatter(
-            types:  ['application/json'],
-            format: fn() => '{}'
-        );
+        $container  = new FakeContainer(['fake.strategy' => new FakeErrorStrategy()]);
 
-        $xmlFormatter = new FakeFormatter(
-            types:  ['application/xml'],
-            format: fn() => '<xml />'
-        );
+        $handler = new ErrorHandler();
+        $handler->setContainer($container);
+        $handler->addStrategy('fake.strategy');
 
-        $handler = new ErrorHandler([$jsonFormatter, $xmlFormatter]);
-        $request = new ServerRequest('GET', '/', ['Accept' => 'application/xml']);
-
-        $response = $handler->handle($request, $this->error);
-
-        $this->assertSame('application/xml', $response->getHeaderLine('Content-Type'));
-        $this->assertStringContainsString('<xml', (string) $response->getBody());
+        $this->assertArrayHasKey('fake', $handler->getStrategies());
     }
 
-    public function testHandleDefaultsToFirstFormatterWhenNoAcceptHeader(): void
+    public function testAddStrategyResolvesViaReflection(): void
     {
-        $formatterA = new FakeFormatter(
-            types:  ['text/plain'],
-            format: fn() => 'plain'
+        $handler = new ErrorHandler();
+        $handler->addStrategy(FakeErrorStrategy::class);
+
+        $this->assertArrayHasKey('fake', $handler->getStrategies());
+    }
+
+    public function testAddStrategyThrowsIfInvalidStrategy(): void
+    {
+        $container = new FakeContainer(['invalid.strategy' => new class {}]);
+
+        $handler = new ErrorHandler();
+        $handler->setContainer($container);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $handler->addStrategy('invalid.strategy');
+    }
+
+    public function testSetDefaultStrategy(): void
+    {
+        $handler = new ErrorHandler();
+        $handler->addStrategy(new FakeErrorStrategy());
+
+        $this->assertSame('text', $handler->getDefaultStrategy()->getName());
+
+        $handler->setDefaultStrategy('fake');
+
+        $this->assertSame('fake', $handler->getDefaultStrategy()->getName());
+    }
+
+    public function testSetDefaultStrategyThrowsIfUnknownStrategy(): void
+    {
+        $handler = new ErrorHandler();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Unknown default strategy 'foo'");
+
+        $handler->setDefaultStrategy('foo');
+    }
+
+    public function testConstructorThrowsUnknownDefaultStrategy(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new ErrorHandler(
+            strategies: [new FakeErrorStrategy('existing')],
+            defaultStrategy: 'non-existent',
+        );
+    }
+
+    public function testHandleUsesHttpErrorRequest(): void
+    {
+        $logger   = new FakeLogger();
+        $error    = new HttpError(new ServerRequest('POST', '/protected'), 403);
+        $strategy = new FakeErrorStrategy();
+
+        $handler = new ErrorHandler(
+            strategies: [$strategy],
+            defaultStrategy: 'fake',
         );
 
-        $formatterB = new FakeFormatter(
-            types:  ['application/json'],
-            format: fn() => 'json'
-        );
+        $handler->setLogger($logger);
+        $handler->handle($this->request, $error);
 
-        $handler = new ErrorHandler([$formatterA, $formatterB]);
-        $response = $handler->handle(new ServerRequest('GET', '/'), $this->error);
-
-        $this->assertSame('text/plain', $response->getHeaderLine('Content-Type'));
-        $this->assertSame('plain', (string) $response->getBody());
+        // The log context must reference the HttpError's own request.
+        $this->assertStringContainsString('POST', $logger->first());
+        $this->assertStringContainsString('/protected', $logger->first());
     }
 }

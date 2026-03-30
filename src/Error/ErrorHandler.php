@@ -4,143 +4,221 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Error;
 
-use LogicException;
-use Throwable;
-use Middlewares\Utils\Factory;
+use Http\Discovery\Psr17FactoryDiscovery;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use Throwable;
+use Zenigata\Http\Error\Strategy\HtmlErrorStrategy;
+use Zenigata\Http\Error\Strategy\JsonErrorStrategy;
+use Zenigata\Http\Error\Strategy\TextErrorStrategy;
+use Zenigata\Http\Error\Strategy\XmlErrorStrategy;
+use Zenigata\Utility\Awareness\ContainerAwareInterface;
+use Zenigata\Utility\Awareness\ContainerAwareTrait;
+use Zenigata\Utility\Awareness\DebugAwareInterface;
+use Zenigata\Utility\Awareness\DebugAwareTrait;
+use Zenigata\Utility\Awareness\ResponseFactoryAwareInterface;
+use Zenigata\Utility\Awareness\StreamFactoryAwareInterface;
+use Zenigata\Utility\Helper\ReflectionResolver;
 
+use function array_keys;
+use function implode;
+use function is_string;
 use function sprintf;
-use function str_contains;
 
 /**
  * Implementation of {@see Zenigata\Http\Error\ErrorHandlerInterface}.
  *
- * Converts exceptions into PSR-7 responses using registered formatter instances.
- * Supports configurable logging, debug mode, and automatic content negotiation.
+ * Supports configurable logging and debug mode.
+ * 
+ * If no error strategy is configured, the defaults will be used:
+ * HTML, JSON, XML, text.
  */
-class ErrorHandler implements ErrorHandlerInterface
+class ErrorHandler implements ErrorHandlerInterface, ContainerAwareInterface, DebugAwareInterface
 {
-    /**
-     * Registered formatters used to create error representations.
-     *
-     * @var FormatterInterface[]
-     */
-    private array $formatters = [];
+    use ContainerAwareTrait;
+    use DebugAwareTrait;
+    use LoggerAwareTrait;
 
     /**
-     * Factory used to generate PSR-7 responses.
+     * List of registered error strategies.
      *
-     * @var ResponseFactoryInterface
+     * @var array<string,ErrorStrategyInterface>
      */
-    private ResponseFactoryInterface $responseFactory;
+    private array $strategies = [];
+
+    /**
+     * The default error strategy, if no more specific one is found.
+     */
+    private ErrorStrategyInterface $defaultStrategy;
 
     /**
      * Creates a new error handler instance.
      *
-     * @param iterable<FormatterInterface>  $formatters      List of formatters used to serialize error responses.
-     * @param LoggerInterface|null          $logger          Optional PSR-3 logger for recording exceptions and request context.
-     * @param ResponseFactoryInterface|null $responseFactory Optional factory to create PSR-7 response instances.
+     * @param list<ErrorStrategyInterface>  $strategies      List of strategies used to create responses.
+     * @param string                        $defaultStrategy The default strategy to use.
+     * @param ResponseFactoryInterface|null $responseFactory The response factory, automatically detected if not provided.
+     * @param StreamFactoryInterface|null   $streamFactory   The stream factory, automatically detected if not provided.
      */
     public function __construct(
-        iterable $formatters = [],
-        private ?LoggerInterface $logger = null,
-        ?ResponseFactoryInterface $responseFactory = null,
+        array $strategies = [],
+        string $defaultStrategy = 'text',
+        private ?ResponseFactoryInterface $responseFactory = null,
+        private ?StreamFactoryInterface $streamFactory = null,
     ) {
-        foreach ($formatters as $formatter) {
-            $this->addFormatter($formatter);
+        if ($strategies === []) {
+            $strategies = self::defaultStrategies();
         }
 
-        $this->responseFactory = $responseFactory ?? Factory::getResponseFactory();
+        foreach ($strategies as $strategy) {
+            $this->addStrategy($strategy);
+        }
+
+        $this->setDefaultStrategy($defaultStrategy);
+
+        $this->responseFactory ??= Psr17FactoryDiscovery::findResponseFactory();
+        $this->streamFactory   ??= Psr17FactoryDiscovery::findStreamFactory();
     }
 
     /**
      * @inheritDoc
      */
-    public function addFormatter(FormatterInterface $formatter): void
+    public function handle(ServerRequestInterface $request, Throwable $error): ResponseInterface
     {
-        if ($formatter->contentTypes() === []) {
-            throw new LogicException(sprintf(
-                'Formatter %s must declare at least one supported content type.',
-                $formatter::class
-            ));
+        if ($error instanceof HttpError) {
+            $request = $error->getRequest();
         }
 
-        $this->formatters[] = $formatter;
+        $this->logError($error, $request);
+
+        $strategy = $this->detectStrategy($request, $error);
+
+        if ($strategy instanceof DebugAwareInterface) {
+            $strategy->setDebug($this->debug);
+        }
+
+        if ($strategy instanceof ResponseFactoryAwareInterface) {
+            $strategy->setResponseFactory($this->responseFactory);
+        }
+
+        if ($strategy instanceof StreamFactoryAwareInterface) {
+            $strategy->setStreamFactory($this->streamFactory);
+        }
+
+        return $strategy->respond($request, $error);
     }
 
     /**
      * @inheritDoc
      * 
-     * Determines the best formatter based on the request’s `Accept` header
-     * and produces a response containing the serialized error.
+     * @throws InvalidArgumentException If the strategy definition cannot be resolved.
      */
-    public function handle(ServerRequestInterface $request, Throwable $error, bool $debug = false): ResponseInterface
+    public function addStrategy(ErrorStrategyInterface|string $strategy): void
     {
-        $request = $error instanceof HttpError ? $error->getRequest() : $request;
-        $code    = $error instanceof HttpError ? $error->getCode() : 500;
+        if (is_string($strategy)) {
+            $strategy = $this->resolveStrategy($strategy);
+        }
 
+        $this->strategies[$strategy->getName()] = $strategy;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getStrategies(): array
+    {
+        return $this->strategies;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefaultStrategy(): ErrorStrategyInterface
+    {
+        return $this->defaultStrategy;
+    }
+
+    /**
+     * @inheritDoc
+     * 
+     * @throws InvalidArgumentException If the default strategy is not in the registered.
+     */
+    public function setDefaultStrategy(string $name): void
+    {
+        if (!isset($this->strategies[$name])) {
+            throw new InvalidArgumentException(sprintf(
+                "Unknown default strategy '%s'. Registered error strategies are: [%s].",
+                $name,
+                implode(', ', array_keys($this->strategies))
+            ));
+        }
+
+        $this->defaultStrategy = $this->strategies[$name];
+    }
+
+    /**
+     * Log the error, if a logger is provided.
+     */
+    protected function logError(Throwable $error, ServerRequestInterface $request): void
+    {
         $this->logger?->error($error->getMessage(), [
             'exception'      => $error,
             'request_method' => $request->getMethod(),
             'request_uri'    => (string) $request->getUri(),
         ]);
-
-        if ($this->formatters === []) {
-            $this->formatters = $this->defaultFormatters();
-        }
-
-        [$formatter, $contentType]  = $this->detectFormatter($request);
-
-        if ($debug === false) {
-            $error = new HttpError($request, $code);
-        }
-
-        $body = $formatter->format($error, $debug);
-
-        $response = $this->responseFactory->createResponse($code);
-        $response->getBody()->write($body);
-
-        return $response->withHeader('Content-Type', $contentType);
     }
 
     /**
-     * Selects the most appropriate formatter based on the request’s `Accept` header.
-     *
-     * @return array{0:FormatterInterface,1:string} The chosen formatter and matching content type.
+     * Detects the most appropriate strategy or return the default one.
      */
-    private function detectFormatter(ServerRequestInterface $request): array
+    private function detectStrategy(ServerRequestInterface $request, Throwable $error): ErrorStrategyInterface
     {
-        $accept = $request->getHeaderLine('Accept');
-
-        foreach ($this->formatters as $formatter) {
-            foreach ($formatter->contentTypes() as $contentType) {
-                if (str_contains($accept, $contentType)) {
-                    return [$formatter, $contentType];
-                }
+        foreach ($this->strategies as $strategy) {
+            if ($strategy->supports($request, $error)) {
+                return $strategy;
             }
         }
 
-        $formatter   = $this->formatters[0];
-        $contentType = $formatter->contentTypes()[0];
-
-        return [$formatter, $contentType];
+        return $this->defaultStrategy;
     }
 
     /**
-     * Returns a default set of formatters used when none are explicitly registered.
-     *
-     * @return FormatterInterface[] A list of fallback formatters.
+     * Resolves a string definition into an error strategy instance.
+     * 
+     * @throws InvalidArgumentException If the strategy cannot be resolved or has the wrong type.
      */
-    private function defaultFormatters(): array
+    private function resolveStrategy(string $strategy): ErrorStrategyInterface
+    {
+        $instance = $this->container?->has($strategy)
+            ? $this->container->get($strategy)
+            : ReflectionResolver::resolve($strategy);
+
+        if (!$instance instanceof ErrorStrategyInterface) {
+            throw new InvalidArgumentException(sprintf(
+                "Invalid type for '%s'. Expected [%s], got '%s'.",
+                $strategy,
+                ErrorStrategyInterface::class,
+                $instance::class
+            ));
+        }
+
+        return $instance;
+    }
+
+    /**
+     * @return list<ErrorStrategyInterface>
+     */
+    private static function defaultStrategies(): array
     {
         return [
-            new HtmlFormatter(),
-            new JsonFormatter(),
-            new XmlFormatter(),
-            new TextFormatter(),
+            new HtmlErrorStrategy(),
+            new JsonErrorStrategy(),
+            new XmlErrorStrategy(),
+            new TextErrorStrategy(),
         ];
     }
 }

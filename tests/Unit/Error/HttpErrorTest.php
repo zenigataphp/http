@@ -28,6 +28,9 @@ final class HttpErrorTest extends TestCase
 {
     private ServerRequestInterface $request;
 
+    /**
+     * @inheritDoc
+     */
     protected function setUp(): void
     {
         $this->request = new ServerRequest('GET', '/'); 

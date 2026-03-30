@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Zenigata\Http\Error;
 
 use Exception;
-use Throwable;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Represents an HTTP-specific error.
@@ -14,7 +14,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * Contains the original PSR-7 request that caused the error.
  * Validates HTTP status code during instantiation.
  */
-final class HttpError extends Exception
+class HttpError extends Exception
 {
     /**
      * List of standard HTTP error status codes
@@ -22,7 +22,7 @@ final class HttpError extends Exception
      *
      * @var array<int,string>
      */
-    public const ERROR_CODES = [
+    public const HTTP_ERROR_CODES = [
         // Client Error
         400 => 'Bad Request',
         401 => 'Unauthorized',
@@ -78,7 +78,7 @@ final class HttpError extends Exception
      *
      * @param ServerRequestInterface $request  The request that caused the error.
      * @param int                    $code     HTTP status code (400–599).
-     * @param string                 $message  Optional error message.
+     * @param string                 $message  Optional error message, defaults to the standard reason phrase.
      * @param Throwable|null         $previous Optional previous exception.
      */
     public function __construct(
@@ -87,12 +87,12 @@ final class HttpError extends Exception
         string $message = '',
         ?Throwable $previous = null
     ) {
-        if (!isset(self::ERROR_CODES[$code])) {
+        if (!isset(self::HTTP_ERROR_CODES[$code])) {
             $code = 500;
         }
 
         if ($message === '') {
-            $message = self::ERROR_CODES[$code];
+            $message = self::HTTP_ERROR_CODES[$code];
         }
 
         parent::__construct(
