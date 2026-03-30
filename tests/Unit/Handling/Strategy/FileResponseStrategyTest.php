@@ -28,6 +28,7 @@ use function tempnam;
  * - Set the correct Content-Type, Content-Disposition, and Content-Length headers.
  * - Write the file contents to the response body.
  * - Throw RuntimeException when the file is not readable.
+ * - Throw RuntimeException for unsupported data type.
  */
 #[CoversClass(FileResponseStrategy::class)]
 final class FileResponseStrategyTest extends TestCase
@@ -105,8 +106,17 @@ final class FileResponseStrategyTest extends TestCase
     public function testRespondThrowsWhenFileIsNotReadable(): void
     {
         $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Cannot create file response:');
 
         $this->strategy->respond($this->request, new SplFileInfo('/non/existent/file.txt'));
+    }
+
+    public function testRespondThrowsIfUsupportedDataType(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Unsupported data type.');
+
+        $this->strategy->respond($this->request, 'not-a-file');
     }
 
     /**

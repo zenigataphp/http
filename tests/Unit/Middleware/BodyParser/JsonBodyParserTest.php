@@ -60,6 +60,7 @@ final class JsonBodyParserTest extends TestCase
     public function testParseThrowsIfInvalidJson(): void
     {
         $this->expectException(JsonException::class);
+        $this->expectExceptionMessage('Syntax error');
 
         $this->parser->parse(Stream::create('{invalid json}'));
     }

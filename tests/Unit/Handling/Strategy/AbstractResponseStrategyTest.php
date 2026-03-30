@@ -77,6 +77,7 @@ final class AbstractResponseStrategyTest extends TestCase
         };
 
         $this->expectException(LogicException::class);
+        $this->expectExceptionMessageMatches("/^Response strategy '.*' must define a name\.$/");
 
         $strategy->getName();
     }

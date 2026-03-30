@@ -93,6 +93,7 @@ final class MiddlewareDispatcherTest extends TestCase
         $dispatcher->setContainer($container);
  
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid type for 'invalid.middleware'.");
  
         $dispatcher->dispatch($this->request, $this->handler);
     }

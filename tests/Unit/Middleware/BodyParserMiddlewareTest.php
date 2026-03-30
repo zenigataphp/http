@@ -116,6 +116,7 @@ final class BodyParserMiddlewareTest extends TestCase
 
         $this->expectException(HttpError::class);
         $this->expectExceptionCode(400);
+        $this->expectExceptionMessage('Parse error.');
 
         $middleware->process($request, $this->handler);
     }

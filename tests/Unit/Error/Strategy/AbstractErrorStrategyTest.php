@@ -14,6 +14,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use Zenigata\Http\Error\HttpError;
 use Zenigata\Http\Error\Strategy\AbstractErrorStrategy;
+use Zenigata\Http\Test\FakeErrorStrategy;
 
 /**
  * Unit test for {@see Zenigata\Http\Error\Strategy\AbstractErrorStrategy}.
@@ -81,7 +82,7 @@ final class AbstractErrorStrategyTest extends TestCase
 
     public function testGetNameThrowsIfMissingName(): void
     {
-        $unnamed = new class extends AbstractErrorStrategy {
+        $strategy = new class extends AbstractErrorStrategy {
             public function respond(ServerRequestInterface $request, Throwable $error): ResponseInterface
             {
                 throw new LogicException('Not implemented.');
@@ -89,8 +90,9 @@ final class AbstractErrorStrategyTest extends TestCase
         };
 
         $this->expectException(LogicException::class);
+        $this->expectExceptionMessageMatches("/^Error strategy '.*' must define a name\.$/");
 
-        $unnamed->getName();
+        $strategy->getName();
     }
 
     public function testResolveMessageUsesExceptionInDebug(): void

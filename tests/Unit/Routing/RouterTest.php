@@ -61,6 +61,7 @@ final class RouterTest extends TestCase
 
         $this->expectException(HttpError::class);
         $this->expectExceptionCode(404);
+        $this->expectExceptionMessage('Not Found');
 
         $this->router->match($this->request);
     }
@@ -71,6 +72,7 @@ final class RouterTest extends TestCase
 
         $this->expectException(HttpError::class);
         $this->expectExceptionCode(405);
+        $this->expectExceptionMessage('Allowed methods:');
 
         $this->router->match($this->request);
     }
@@ -159,6 +161,7 @@ final class RouterTest extends TestCase
         $this->router->setContainer($container);
 
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid type for 'invalid.route'.");
 
         $this->router->getRoutes();
     }

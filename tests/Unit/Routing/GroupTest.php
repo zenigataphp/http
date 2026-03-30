@@ -50,6 +50,7 @@ final class GroupTest extends TestCase
         $group = new Group('/api', fn() => 'not an array');
 
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid group callable return type.');
 
         $group->getRoutes();
     }

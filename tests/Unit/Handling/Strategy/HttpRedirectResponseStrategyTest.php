@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Zenigata\Http\Test\Unit\Handling\Strategy;
 
-use InvalidArgumentException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Zenigata\Http\Handling\Strategy\HttpRedirect;
 use Zenigata\Http\Handling\Strategy\HttpRedirectResponseStrategy;
 
@@ -21,7 +21,8 @@ use Zenigata\Http\Handling\Strategy\HttpRedirectResponseStrategy;
  * - Set the Location header from the HttpRedirect location.
  * - Use the status code from the HttpRedirect object.
  * - Forward additional headers from the HttpRedirect onto the response.
- * - Throw InvalidArgumentException for status codes outside the allowed redirect set.
+ * - Throw RuntimeException for status codes outside the allowed redirect set.
+ * - Throw RuntimeException for unsupported data type.
  */
 #[CoversClass(HttpRedirectResponseStrategy::class)]
 final class HttpRedirectResponseStrategyTest extends TestCase
@@ -74,8 +75,17 @@ final class HttpRedirectResponseStrategyTest extends TestCase
 
     public function testRespondThrowsIfInvalidStatusCode(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Invalid redirect status code:');
 
         $this->strategy->respond($this->request, new HttpRedirect('/target', 200));
+    }
+
+    public function testRespondThrowsIfUsupportedDataType(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Unsupported data type.');
+
+        $this->strategy->respond($this->request, 'not-a-redirect');
     }
 }

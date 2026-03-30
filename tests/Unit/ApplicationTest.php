@@ -151,6 +151,7 @@ final class ApplicationTest extends TestCase
         $this->createApplication();
 
         $this->expectException(ErrorException::class);
+        $this->expectExceptionMessage('test warning');
 
         trigger_error('test warning', E_USER_WARNING);
     }

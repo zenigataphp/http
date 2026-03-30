@@ -133,6 +133,7 @@ final class HandlerNormalizerTest extends TestCase
     public function testThrowForUnsupportedHandlerType(): void
     {
         $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageMatches("/^Handler of type '.*' cannot be normalized into a callable\.$/");
 
         $normalizer = new HandlerNormalizer();
 

@@ -16,6 +16,13 @@ use Zenigata\Http\Middleware\BodyParserInterface;
  */
 final class FakeBodyParser implements BodyParserInterface
 {
+    /**
+     * Creates a new fake body parser instance.
+     *
+     * @param string $contentType The supported content type.
+     * @param mixed  $result      The returned result.
+     * @param bool   $throws      Determines if the parser should throw.
+     */
     public function __construct(
         private string $contentType,
         private mixed $result = null,

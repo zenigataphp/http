@@ -51,6 +51,7 @@ final class UrlEncodedBodyParserTest extends TestCase
     public function testParseThrowsInvalidUrlEncodedBody(): void
     {
         $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Invalid URL encoded string.');
 
         $this->parser->parse(Stream::create('&='));
     }

@@ -53,6 +53,7 @@ final class XmlBodyParserTest extends TestCase
     public function testParseThrowsInvalidXml(): void
     {
         $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Malformed XML:');
 
         $this->parser->parse(Stream::create('<unclosed>'));
     }

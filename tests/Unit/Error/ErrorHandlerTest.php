@@ -129,6 +129,7 @@ final class ErrorHandlerTest extends TestCase
         $handler->setContainer($container);
 
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid type for 'invalid.strategy'.");
 
         $handler->addStrategy('invalid.strategy');
     }
@@ -158,10 +159,11 @@ final class ErrorHandlerTest extends TestCase
     public function testConstructorThrowsUnknownDefaultStrategy(): void
     {
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Unknown default strategy 'foo'");
 
         new ErrorHandler(
-            strategies: [new FakeErrorStrategy('existing')],
-            defaultStrategy: 'non-existent',
+            strategies: [new FakeErrorStrategy()],
+            defaultStrategy: 'foo',
         );
     }
 

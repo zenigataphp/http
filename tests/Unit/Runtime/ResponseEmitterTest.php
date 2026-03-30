@@ -43,6 +43,7 @@ final class ResponseEmitterTest extends TestCase
     public function testRejectsInvalidBufferLength(): void
     {
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Buffer length must be greater than zero;');
 
         new TestableResponseEmitter(0);
     }
@@ -99,23 +100,28 @@ final class ResponseEmitterTest extends TestCase
 
     public function testSkipsBodyForEmptyStatus(): void
     {
+        $emitter  = new TestableResponseEmitter();
+        $response = new Response();
+
         foreach (ResponseEmitter::CODES_WITHOUT_BODY as $code) {
-            $emitter = new TestableResponseEmitter();
-
-            $emitter->emit((new Response($code))->withBody(Stream::create('should not appear')));
-
+            $response = $response
+                ->withStatus($code)
+                ->withBody(Stream::create('should not appear'));
+            
             $this->expectOutputString('');
-            $emitter->emit(new Response($code));
+            
+            $emitter->emit($response);
         }
     }
 
     public function testSkipsBodyWhenBodyIsEmpty(): void
     {
-        $emitter = new TestableResponseEmitter();
+        $emitter  = new TestableResponseEmitter();
+        $response = new Response();
 
         $this->expectOutputString('');
 
-        $emitter->emit((new Response())->withBody(Stream::create('')));
+        $emitter->emit($response->withBody(Stream::create('')));
     }
 
     public function testRewindsStreamBeforeEmit(): void

@@ -132,6 +132,7 @@ final class RouteHandlerTest extends TestCase
         $handler->setContainer($container);
 
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid type for 'invalid.strategy'.");
 
         $handler->addStrategy('invalid.strategy');
     }
@@ -161,10 +162,11 @@ final class RouteHandlerTest extends TestCase
     public function testConstructorThrowsUnknownDefaultStrategy(): void
     {
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Unknown default strategy 'foo'");
 
         new RouteHandler(
-            strategies: [new FakeResponseStrategy('existing')],
-            defaultStrategy: 'non-existent',
+            strategies: [new FakeResponseStrategy()],
+            defaultStrategy: 'foo',
         );
     }
 
