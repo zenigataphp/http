@@ -1,41 +1,38 @@
 <?php
 
-namespace Zenigata\Http\Router;
+namespace Zenigata\Http\Routing;
 
 use Psr\Http\Server\MiddlewareInterface;
 
+use function array_map;
+use function array_merge;
 use function strtoupper;
 use function trim;
 
 /**
- * Implementation of {@see Zenigata\Http\Router\RouteInterface}.
+ * Implementation of {@see Zenigata\Http\Routing\RouteInterface}.
  * 
- * Represents a single HTTP route with its method, path, handler,
- * and optional middleware stack.
+ * Includes some utility methods for creating different types of routes.
  */
 class Route implements RouteInterface
 {
     /**
      * The HTTP method.
-     *
-     * @var string
      */
     private string $method;
     
     /**
      * The route path.
-     *
-     * @var string
      */
     private string $path;
 
     /**
      * Creates a new route instance.
      *
-     * @param string                         $method     The HTTP method (e.g., "GET", "POST").
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param string                           $method     The HTTP method (e.g., "GET", "POST").
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      */
     public function __construct(
         string $method,
@@ -50,9 +47,9 @@ class Route implements RouteInterface
     /**
      * Creates a GET route instance. 
      *
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      * 
      * @return static A new route for GET requests.
      */
@@ -68,9 +65,9 @@ class Route implements RouteInterface
     /**
      * Creates a POST route instance. 
      *
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      * 
      * @return static A new route for POST requests.
      */
@@ -86,9 +83,9 @@ class Route implements RouteInterface
     /**
      * Creates a PUT route instance. 
      *
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      * 
      * @return static A new route for PUT requests.
      */
@@ -104,9 +101,9 @@ class Route implements RouteInterface
     /**
      * Creates a PATCH route instance. 
      *
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      * 
      * @return static A new route for PATCH requests.
      */
@@ -122,9 +119,9 @@ class Route implements RouteInterface
     /**
      * Creates a DELETE route instance. 
      *
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      * 
      * @return static A new route for DELETE requests.
      */
@@ -140,9 +137,9 @@ class Route implements RouteInterface
     /**
      * Creates a HEAD route instance. 
      *
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      * 
      * @return static A new route for HEAD requests.
      */
@@ -158,9 +155,9 @@ class Route implements RouteInterface
     /**
      * Creates an OPTIONS route instance. 
      *
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      * 
      * @return static A new route for OPTIONS requests.
      */
@@ -178,9 +175,9 @@ class Route implements RouteInterface
      * 
      * Useful when a single path and handler need to handle all HTTP methods.
      *
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      * 
      * @return GroupInterface A group containing routes for each HTTP verb.
      */
@@ -200,10 +197,10 @@ class Route implements RouteInterface
      * 
      * Useful when a single path and handler need to handle multiple HTTP methods.
      *
-     * @param string[]                       $methods    List of HTTP methods.
-     * @param string                         $path       The route path.
-     * @param mixed                          $handler    The route handler.
-     * @param MiddlewareInterface[]|string[] $middleware Optional middleware stack.
+     * @param list<string>                     $methods    List of HTTP methods.
+     * @param string                           $path       The route path.
+     * @param mixed                            $handler    The route handler.
+     * @param list<MiddlewareInterface|string> $middleware Optional middleware stack.
      * 
      * @return GroupInterface A group containing routes for the specified methods.
      */
@@ -213,28 +210,25 @@ class Route implements RouteInterface
         mixed $handler,
         array $middleware = []
     ): GroupInterface
-    {
-        $routes = [];
-        
-        foreach ($methods as $method) {
-            $routes[] = new self($method, $path, $handler, $middleware);
-        }
-
-        return new Group('', $routes, $middleware);
+    {   
+        return new Group('', fn() => array_map(
+            fn($method) => new self($method, $path, $handler, $middleware),
+            $methods
+        ));
     }
 
     /**
      * Defines a group of routes with a shared path prefix and middleware stack.
      * 
-     * The provided callback must return an array of route instances.
+     * The provided callback must return an array of route or group instances.
      *
-     * @param string                         $prefix     The shared path prefix.
-     * @param RouteInterface[]               $routes     Array of routes belonging to the group.
-     * @param MiddlewareInterface[]|string[] $middleware Optional group middleware stack.
+     * @param string                           $prefix     The shared path prefix.
+     * @param callable                         $routes     Routes belonging to the group.
+     * @param list<MiddlewareInterface|string> $middleware Optional group middleware stack.
      *
      * @return GroupInterface A group containing the prefixed routes.
      */
-    public static function group(string $prefix, array $routes, array $middleware = []): GroupInterface
+    public static function group(string $prefix, callable $routes, array $middleware = []): GroupInterface
     {
         return new Group($prefix, $routes, $middleware);
     }
@@ -269,5 +263,17 @@ class Route implements RouteInterface
     public function getMiddleware(): array
     {
         return $this->middleware;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withGroup(GroupInterface $group): static
+    {
+        $clone = clone $this;
+        $clone->path = $group->getPrefix() . $this->path;
+        $clone->middleware = array_merge($group->getMiddleware(), $this->middleware);
+
+        return $clone;
     }
 }
